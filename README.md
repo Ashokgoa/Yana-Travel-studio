@@ -60,6 +60,10 @@ How it works: other machines only talk to port 3000. The Next.js server forwards
 
 > **Security:** traffic is plain HTTP, so passwords and data cross the network unencrypted. Use shared mode only on trusted networks, give every person their own account, and use strong passwords. Internet access (outside your network) needs a proper HTTPS deployment; see `docs/DEVELOPMENT_PLAN.md`. On a company-managed laptop, IT policy may block incoming connections regardless of these settings.
 
+### Private remote access (requires IT approval on company devices)
+
+`scripts\start-tailscale.ps1` serves the app privately to your own Tailscale devices (e.g. your phone) over HTTPS, without opening ports. **Do not use it on a company laptop without IT approval.** Turn it off with `tailscale serve reset` and `tailscale down`.
+
 ## Test
 
 ```powershell

@@ -55,3 +55,9 @@ Native selects work directly with react-hook-form, are accessible and keyboard-f
 
 ### TD-018 · Same-origin API through a Next.js rewrite; LAN sharing on one port
 The browser always calls `/api/v1/*` on the address it loaded the app from, and `next.config.ts` rewrites that to `BACKEND_URL` (default `http://127.0.0.1:8000`). Benefits: colleagues on the network need only port 3000; the backend never listens on the network; the session cookie is same-origin, so it works by IP address without CORS or SameSite issues. `NEXT_PUBLIC_API_BASE_URL` was removed. Shared mode (`scripts/start-shared.ps1`) uses the production server (`next start --hostname 0.0.0.0`), because the dev server blocks other hostnames and uses far more memory. The firewall rule covers Domain and Private profiles only. Plain HTTP is acceptable only on trusted networks; internet exposure requires HTTPS (cloud phase).
+
+### TD-019 · Login brute-force protection (in-memory lockout)
+After 5 wrong passwords for an email within 15 minutes, that email is locked for 15 minutes (HTTP 429 `too_many_attempts`). It is keyed by email because behind the Next proxy all requests come from 127.0.0.1. State is in memory, which suits one local server process; a multi-instance cloud deployment must move it to the database or a cache.
+
+### TD-020 · Remote access stays OFF on the company laptop
+Remote access (Tailscale Serve via `scripts/start-tailscale.ps1`) was tested once and then disabled. It opens an extra network path into a company-managed laptop, which needs IT approval. Until a hosting decision is made, the app runs locally only (`127.0.0.1`). Options for later: Tailscale (with IT approval and ACLs limited to HTTPS only) or cloud hosting under YANA DMC's own account.

@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, Response, status
 
 from app.api.deps import DB, CurrentUser
 from app.core.config import Settings, get_settings
+from app.core.errors import DomainError
 from app.core.security import create_access_token
+from app.services.login_throttle import login_throttle
 from app.schemas.user import LoginRequest, UserOut
 from app.services.user_service import UserService
 
@@ -15,7 +17,20 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 def login(
     body: LoginRequest, response: Response, db: DB, settings: Annotated[Settings, Depends(get_settings)]
 ):
-    user = UserService(db).authenticate(body.email, body.password)
+    wait = login_throttle.retry_after(body.email)
+    if wait:
+        minutes = max(1, -(-wait // 60))
+        raise DomainError(
+            f"Too many failed sign-in attempts. Try again in {minutes} minute{'s' if minutes != 1 else ''}.",
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "too_many_attempts",
+        )
+    try:
+        user = UserService(db).authenticate(body.email, body.password)
+    except DomainError:
+        login_throttle.record_failure(body.email)
+        raise
+    login_throttle.record_success(body.email)
     response.set_cookie(
         key=settings.auth_cookie_name,
         value=create_access_token(user.id, settings),
