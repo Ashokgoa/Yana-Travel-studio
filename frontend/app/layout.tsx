@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "Itinerary and proposal studio for YANA DMC.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
