@@ -21,6 +21,7 @@ STORAGE_FOLDERS = (
     "restaurants",
     "sightseeing",
     "transportation",
+    "library",
     "generated",
 )
 

@@ -56,6 +56,9 @@ Native selects work directly with react-hook-form, are accessible and keyboard-f
 ### TD-018 · Same-origin API through a Next.js rewrite; LAN sharing on one port
 The browser always calls `/api/v1/*` on the address it loaded the app from, and `next.config.ts` rewrites that to `BACKEND_URL` (default `http://127.0.0.1:8000`). Benefits: colleagues on the network need only port 3000; the backend never listens on the network; the session cookie is same-origin, so it works by IP address without CORS or SameSite issues. `NEXT_PUBLIC_API_BASE_URL` was removed. Shared mode (`scripts/start-shared.ps1`) uses the production server (`next start --hostname 0.0.0.0`), because the dev server blocks other hostnames and uses far more memory. The firewall rule covers Domain and Private profiles only. Plain HTTP is acceptable only on trusted networks; internet exposure requires HTTPS (cloud phase).
 
+### TD-021 · Image pipeline and serving (Phase 2c)
+Pillow validates by content (not the extension), caps pixels against decompression bombs, applies EXIF orientation and re-encodes, which drops all metadata including GPS (a privacy requirement for phone photos). The long edge is capped at 2400 px (enough for A4 brochures), plus a 480 px JPEG thumbnail. Dedupe uses SHA-256 of the original bytes. Files are served through authenticated API routes, with `?v=<hash>` URLs and `immutable` caching; replacing a file changes the hash, which busts caches. Uploads go through the Next.js rewrite like all other API calls (verified with real browser uploads).
+
 ### TD-019 · Login brute-force protection (in-memory lockout)
 After 5 wrong passwords for an email within 15 minutes, that email is locked for 15 minutes (HTTP 429 `too_many_attempts`). It is keyed by email because behind the Next proxy all requests come from 127.0.0.1. State is in memory, which suits one local server process; a multi-instance cloud deployment must move it to the database or a cache.
 

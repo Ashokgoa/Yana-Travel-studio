@@ -38,7 +38,7 @@ Rules enforced in services: a customer linked to agent A can't appear on an enqu
 | `enquiry_requirements` (1:1 enquiry) | arrival_date, departure_date, total_days, total_nights, arrival_airport, departure_airport, start_country_id, end_country_id, travel_type (FIT/GIT), group_size, adults, children, children_ages, interests JSON, hotel_categories JSON, hotel_location_prefs JSON, breakfast_required, room_types JSON, rooms_count, food_preferences JSON, meal_plan (enum), selected_meals JSON, transport_modes JSON, luggage_notes, airport_transfers, local_transport, budget_per_person, budget_total, currency, budget_flexibility (enum), travel_class, additional_requirements, internal_notes |
 | `enquiry_destinations` | requirement_id →, country_id →, city_id → (nullable), preference (mandatory / preferred / optional / avoid), sort_order |
 
-## Destination inventory (Phase 2)
+## Destination inventory (Phase 2) ✅ migration `0003`
 
 | Table | Key columns |
 |---|---|
@@ -54,7 +54,7 @@ Rules enforced in services: a customer linked to agent A can't appear on an enqu
 | `vehicles` | category_id →, supplier_id →, name, service_types JSON (airport_transfer, local, intercity, long_distance), price_per_day, price_per_km, driver_cost_per_day, additional_costs JSON, currency, price_is_verified, availability_notes, is_demo, is_active |
 | `vehicle_countries` | vehicle_id →, country_id → (operating countries) |
 
-## Media (Phase 2)
+## Media (Phase 2) ✅ migration `0003`
 
 | Table | Key columns |
 |---|---|

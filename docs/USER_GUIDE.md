@@ -44,4 +44,6 @@ Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaur
 - **Prices** are labelled *estimated* until you tick "verified with supplier".
 - **Hotels**: open a hotel to add room types (base price per room per night) and seasonal rates.
 - **DEMO records** are fictional examples marked with a purple badge. Replace them with real supplier data, or deactivate them, before using them in proposals.
+- **Photos**: on any country, city, sightseeing, hotel, restaurant or vehicle page, drag photos onto the *Photos* panel (or click *Add photos*). The first photo becomes the **primary** one, used in lists and proposals; click the star on another to change it. Use the arrows (or drag) to reorder, the speech-bubble to add a caption, and × to remove a photo from that record (it stays in the library). *From library* reuses an existing photo without uploading it again.
+- **Image Library** (Destination Inventory → Image Library) shows every photo, where it's used, and lets administrators edit descriptions, mark images as *illustrative*, **replace** a file everywhere at once, or delete it. Location data (GPS) is removed from photos automatically.
 - **Deactivate** instead of deleting: the record stays on file (and in existing itineraries) but isn't offered for new ones.

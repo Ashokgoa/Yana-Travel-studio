@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, ImageIcon, Pencil, Power } from "lucide-react";
+import { ExternalLink, Pencil, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
@@ -13,6 +13,7 @@ import { ActiveBadge } from "@/components/common/status-badge";
 import { useAuth } from "@/features/auth/auth-provider";
 import { DemoBadge, TriState } from "@/features/inventory/badges";
 import { HotelRooms } from "@/features/inventory/hotel-rooms";
+import { ImageGallery } from "@/features/media/image-gallery";
 import { InventoryFormDialog } from "@/features/inventory/inventory-form-dialog";
 import { Thumb } from "@/features/inventory/inventory-list";
 import { humanize, RESOURCES, stars, type FieldDef } from "@/features/inventory/resource-config";
@@ -20,6 +21,16 @@ import { formatDateTime, formatMoney } from "@/lib/format";
 import { handleFormError } from "@/lib/form-errors";
 import { inventoryApi } from "@/services/inventory";
 import type { Hotel, InventoryItem, ResourceKey } from "@/types/inventory";
+import type { MediaEntityType } from "@/types/media";
+
+const ENTITY_TYPE: Partial<Record<ResourceKey, MediaEntityType>> = {
+  countries: "country",
+  cities: "city",
+  attractions: "attraction",
+  hotels: "hotel",
+  restaurants: "restaurant",
+  vehicles: "vehicle",
+};
 
 const REF_OBJECT: Record<string, string> = {
   country_id: "country",
@@ -150,16 +161,8 @@ export function InventoryDetail({ resource, id }: { resource: ResourceKey; id: n
         </div>
 
         <div className="space-y-6">
-          {config.hasImages && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Photos</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center gap-2 py-6 text-center text-sm text-muted-foreground">
-                <ImageIcon className="size-6" aria-hidden />
-                Photo gallery arrives in the next step (2c).
-              </CardContent>
-            </Card>
+          {config.hasImages && ENTITY_TYPE[resource] && (
+            <ImageGallery entityType={ENTITY_TYPE[resource]!} entityId={item.id} canEdit={isAdmin} />
           )}
           <Card>
             <CardHeader>

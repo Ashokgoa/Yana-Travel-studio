@@ -120,5 +120,25 @@ Hotel extras: `POST|PUT|DELETE /inventory/hotels/{id}/room-types[/{room_type_id}
 
 Also: `GET /inventory/options` (vocabularies for forms: categories, interest tags, facilities, weekdays…) and `GET /inventory/vehicle-categories`.
 
+## Image library (Phase 2)
+
+| Method | Path | Roles | Description |
+|---|---|---|---|
+| GET | `/media?q=&category=&illustrative=` | any | Paged library with `usage_count`, `url`, `thumbnail_url` |
+| POST | `/media/upload` (multipart: `file`, optional `entity_type`+`entity_id`, `category`, `description`, `source`, `is_illustrative`, `is_ai_generated`) | any; **admin** when linking to a record | Validates and processes the image; identical files are reused (`created: false`) |
+| GET | `/media/{id}` | any | Details plus `usages` (where it's used) |
+| PATCH | `/media/{id}` | admin | `description`, `alt_text`, `source`, `is_illustrative` (AI images stay illustrative) |
+| POST | `/media/{id}/replace` (multipart `file`) | admin | New file, same links everywhere; URL changes (`?v=`) |
+| DELETE | `/media/{id}` | admin | Deletes file, thumbnail and all links; promotes a new primary where needed |
+| GET | `/media/{id}/file`, `/media/{id}/thumbnail` | any | Image bytes, cached as immutable (URL carries a content hash) |
+| GET | `/media/gallery/{entity_type}/{entity_id}` | any | Ordered gallery of a record |
+| POST | `/media/links` `{entity_type, entity_id, media_id, caption?}` | admin | Reuse a library image (409 if already linked) |
+| DELETE | `/media/links/{link_id}` | admin | Remove from record (file stays in library) |
+| POST | `/media/links/{link_id}/primary` | admin | Make primary |
+| PUT | `/media/links/{link_id}/caption` | admin | Caption for that record |
+| PUT | `/media/gallery/{entity_type}/{entity_id}/order` `{link_ids}` | admin | Reorder (must list every link once) |
+
+Errors: `invalid_image` (422, not a real/allowed image), `file_too_large` (413), `duplicate_image` (409 on replace), `already_linked` (409).
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 

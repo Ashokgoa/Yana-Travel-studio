@@ -18,7 +18,7 @@ describe("visibleNavigation", () => {
   it("shows the destination inventory pages and suppliers", () => {
     const visible = visibleNavigation("planner");
     expect(visible.find((i) => i.label === "Destination Inventory")?.children?.map((c) => c.label)).toEqual([
-      "Countries", "Cities", "Sightseeing", "Hotels", "Restaurants", "Transportation",
+      "Countries", "Cities", "Sightseeing", "Hotels", "Restaurants", "Transportation", "Image Library",
     ]);
     expect(visible.map((i) => i.label)).toContain("Suppliers");
   });

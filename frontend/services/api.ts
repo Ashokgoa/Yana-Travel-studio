@@ -30,11 +30,13 @@ export function withQuery(path: string, params?: QueryParams): string {
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
+  // FormData bodies (uploads) must let the browser set the multipart boundary header.
+  const isForm = typeof FormData !== "undefined" && init?.body instanceof FormData;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       credentials: "include", // send the HttpOnly session cookie
-      headers: { "Content-Type": "application/json", ...init?.headers },
+      headers: isForm ? init?.headers : { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
     throw new ApiError("Cannot reach YANA Travel Studio. Check your network connection.", 0);
@@ -59,6 +61,7 @@ export const api = {
   put: <T>(path: string, body: unknown) => apiFetch<T>(path, { method: "PUT", body: JSON.stringify(body) }),
   patch: <T>(path: string, body: unknown) => apiFetch<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
   delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+  upload: <T>(path: string, form: FormData) => apiFetch<T>(path, { method: "POST", body: form }),
 };
 
 export const systemApi = {

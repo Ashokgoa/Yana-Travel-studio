@@ -4,8 +4,8 @@
 |---|---|---|
 | 0 | Project foundation | ✅ Complete (2026-11-23) |
 | 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
-| 2 | Destination inventory & images | 🔨 In progress (2a, 2b, 2d done; 2c images next) |
-| 3 | Customer requirement capture | Planned |
+| 2 | Destination inventory & images | ✅ Complete (2026-11-24), awaiting approval |
+| 3 | Customer requirement capture | ⏳ Next |
 | 4 | Itinerary engine | Planned |
 | 5 | Visual itinerary builder | Planned |
 | 6 | PDF designer | Planned |
@@ -14,7 +14,7 @@
 
 ---
 
-## Phase 2 – Destination inventory & images (in progress)
+## Phase 2 – Destination inventory & images (2026-11-23 → 24)
 
 ### 2a · Inventory data model & API (done)
 - Migration `0003`: countries, cities, suppliers, attractions, hotels with room types and seasonal rates, restaurants, vehicle categories (7 PRD categories seeded) and vehicles with operating countries, media and media links.
@@ -31,8 +31,17 @@
 - `python -m app.cli seed-demo` loads 8 countries, 26 cities, 30 real attractions and fictional DEMO hotels (16), restaurants (10), suppliers (4) and vehicles (5). It refuses to run if any country exists, so it never overwrites real data.
 - No invented opening hours or ticket prices for real attractions; all demo prices are unverified (test enforced).
 
-### Next: 2c · Image library
-Upload/validate/resize images, primary image, reorder, replace, delete, reuse across records, illustrative flag.
+### 2c · Image library (done)
+- Upload JPG/PNG/WEBP (≤10 MB): real format detected from content, decompression-bomb limit, EXIF orientation applied, **all metadata incl. GPS removed**, long edge capped at 2400 px, 480 px JPEG thumbnail. Identical files are stored once (SHA-256) and re-linked.
+- Galleries on every inventory record: upload (multi-file, drag and drop), add from library (reuse), primary image (first upload automatic; promoted when removed), reorder (arrows + drag and drop), captions, remove from record, replace file everywhere, delete everywhere. AI images are always flagged illustrative.
+- Central **Image Library** page: search, category and photo/illustrative filters, usage ("used in N places") with links.
+- Permissions: anyone signed in views and uploads to the library; gallery changes, metadata edits, replace and delete are admin-only.
+- Verified: 16 new backend tests (88 total). Real browser upload through the Next.js proxy; primary/reorder/list thumbnail/library/details checks all pass; stored files confirmed to have no metadata.
+
+### Outstanding / known issues
+- Images are served through the API with authentication (fine locally). For cloud hosting they should move to Blob storage with signed URLs.
+- Reference dropdowns load up to 100 records (fine for current inventory size).
+- Demo data loaded into the local database on request; replace or deactivate it before real proposals.
 
 ---
 

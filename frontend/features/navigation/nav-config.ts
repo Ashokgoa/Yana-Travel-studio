@@ -60,6 +60,7 @@ export const NAVIGATION: NavItem[] = [
       { label: "Hotels", href: "/inventory/hotels", enabled: true },
       { label: "Restaurants", href: "/inventory/restaurants", enabled: true },
       { label: "Transportation", href: "/inventory/transportation", enabled: true },
+      { label: "Image Library", href: "/inventory/images", enabled: true },
     ],
   },
   { label: "Suppliers", href: "/suppliers", icon: Building2, enabled: true },
