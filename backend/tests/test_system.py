@@ -5,7 +5,15 @@ def test_health_reports_ok_after_migration(client):
     assert body["status"] == "ok"
     assert body["environment"] == "test"
     assert body["database"]["status"] == "ok"
-    assert "migration 0002" in body["database"]["detail"]
+    assert f"migration {_head_revision()}" in body["database"]["detail"]
+
+
+def _head_revision() -> str:
+    from alembic.script import ScriptDirectory
+
+    from tests.conftest import alembic_config
+
+    return ScriptDirectory.from_config(alembic_config("sqlite://")).get_current_head()
 
 
 def test_startup_creates_storage_layout(client, tmp_root):
