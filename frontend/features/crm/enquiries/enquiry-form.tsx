@@ -7,11 +7,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { CalendarRange, Loader2, UserPlus } from "lucide-react";
+import { Building2, CalendarRange, Loader2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { controlClass, errorProps, FormField, FormSection, NativeSelect } from "@/components/common/form-controls";
 import { useAuth } from "@/features/auth/auth-provider";
+import { AgentFormDialog } from "@/features/crm/agents/agent-form-dialog";
 import { CustomerFormDialog } from "@/features/crm/customers/customer-form-dialog";
 import { emptyToNull, todayIso, tripLength } from "@/lib/format";
 import { handleFormError } from "@/lib/form-errors";
@@ -93,6 +94,7 @@ export function EnquiryForm({ enquiry }: { enquiry?: EnquiryDetail }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [addingCustomer, setAddingCustomer] = useState(false);
+  const [addingAgent, setAddingAgent] = useState(false);
 
   const { register, handleSubmit, setValue, setError, control, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -169,32 +171,58 @@ export function EnquiryForm({ enquiry }: { enquiry?: EnquiryDetail }) {
         <CardContent className="space-y-8 pt-6">
           <FormSection title="Who is enquiring">
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Travel agent" htmlFor="enq-travel_agent_id" required error={errors.travel_agent_id?.message}>
-                <NativeSelect
-                  {...field("travel_agent_id")}
-                  onChange={(e) => {
-                    register("travel_agent_id").onChange(e);
-                    const keep = pre && !pre.travel_agent_id && String(pre.id) === getValues("customer_id");
-                    if (!keep) setValue("customer_id", "");
-                  }}
-                >
-                  <option value="">{agents.isPending ? "Loading…" : "Select travel agent"}</option>
-                  {enquiry && !agents.data?.items.some((a) => a.id === enquiry.travel_agent_id) && (
-                    <option value={enquiry.travel_agent_id}>{enquiry.travel_agent.company_name} (inactive)</option>
-                  )}
-                  {agents.data?.items.map((a) => <option key={a.id} value={a.id}>{a.company_name}</option>)}
-                </NativeSelect>
-              </FormField>
-              <FormField label="Customer" htmlFor="enq-customer_id" required error={errors.customer_id?.message}>
+              <FormField
+                label="Travel agent"
+                htmlFor="enq-travel_agent_id"
+                required
+                error={errors.travel_agent_id?.message}
+                hint={agents.data && agents.data.items.length === 0 ? "No travel agents yet: add the first one with “New agent”." : undefined}
+              >
                 <div className="flex gap-2">
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
+                    <NativeSelect
+                      {...field("travel_agent_id")}
+                      onChange={(e) => {
+                        register("travel_agent_id").onChange(e);
+                        const keep = pre && !pre.travel_agent_id && String(pre.id) === getValues("customer_id");
+                        if (!keep) setValue("customer_id", "");
+                      }}
+                    >
+                      <option value="">{agents.isPending ? "Loading…" : agents.data?.items.length === 0 ? "No travel agents yet" : "Select travel agent"}</option>
+                      {enquiry && !agents.data?.items.some((a) => a.id === enquiry.travel_agent_id) && (
+                        <option value={enquiry.travel_agent_id}>{enquiry.travel_agent.company_name} (inactive)</option>
+                      )}
+                      {agents.data?.items.map((a) => <option key={a.id} value={a.id}>{a.company_name}</option>)}
+                    </NativeSelect>
+                  </div>
+                  <Button type="button" variant="outline" className="h-10 shrink-0" onClick={() => setAddingAgent(true)}>
+                    <Building2 aria-hidden /> New agent
+                  </Button>
+                </div>
+              </FormField>
+              <FormField
+                label="Customer"
+                htmlFor="enq-customer_id"
+                required
+                error={errors.customer_id?.message}
+                hint={agentId && customers.data && customerOptions.length === 0 ? "This agent has no customers yet: add one with “New customer”." : undefined}
+              >
+                <div className="flex gap-2">
+                  <div className="min-w-0 flex-1">
                     <NativeSelect {...field("customer_id")} disabled={!agentId}>
-                      <option value="">{!agentId ? "Select an agent first" : customers.isPending ? "Loading…" : "Select customer"}</option>
+                      <option value="">{!agentId ? "Select an agent first" : customers.isPending ? "Loading…" : customerOptions.length === 0 ? "No customers yet" : "Select customer"}</option>
                       {customerOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </NativeSelect>
                   </div>
-                  <Button type="button" variant="outline" className="h-10" disabled={!agentId} onClick={() => setAddingCustomer(true)} aria-label="Add new customer">
-                    <UserPlus aria-hidden />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 shrink-0"
+                    disabled={!agentId}
+                    title={!agentId ? "Select or add a travel agent first" : undefined}
+                    onClick={() => setAddingCustomer(true)}
+                  >
+                    <UserPlus aria-hidden /> New customer
                   </Button>
                 </div>
               </FormField>
@@ -273,6 +301,15 @@ export function EnquiryForm({ enquiry }: { enquiry?: EnquiryDetail }) {
         </div>
       </Card>
 
+      <AgentFormDialog
+        open={addingAgent}
+        onOpenChange={setAddingAgent}
+        onSaved={(a) => {
+          // Select the new agent (re-applied once the refreshed agent list arrives) and reset the customer.
+          setValue("travel_agent_id", String(a.id), { shouldValidate: true });
+          setValue("customer_id", "");
+        }}
+      />
       <CustomerFormDialog
         open={addingCustomer}
         onOpenChange={setAddingCustomer}
