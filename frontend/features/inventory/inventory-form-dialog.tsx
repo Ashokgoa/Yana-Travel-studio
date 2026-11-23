@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { ChipGroup, Segmented } from "@/components/common/choice-controls";
 import { controlClass, FormField, FormSection, NativeSelect } from "@/components/common/form-controls";
 import { FormDialog } from "@/components/common/form-dialog";
 import { cn } from "@/lib/utils";
@@ -23,52 +23,14 @@ import {
 
 type Values = Record<string, FormValue>;
 
-function ChipGroup({ id, options, value, onChange }: { id: string; options: RefOption[]; value: string[]; onChange: (v: string[]) => void }) {
-  return (
-    <div id={id} role="group" className="flex flex-wrap gap-2">
-      {options.map((o) => {
-        const on = value.includes(o.value);
-        return (
-          <button
-            key={o.value}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(on ? value.filter((v) => v !== o.value) : [...value, o.value])}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
-              "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-              on ? "border-brand-teal bg-accent font-medium text-accent-foreground" : "bg-background text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {on && <Check className="size-3.5" aria-hidden />}
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function TriStateInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
-  const opts: [string, string][] = [["true", "Yes"], ["false", "No"], ["", "Unknown"]];
   return (
-    <div id={id} role="radiogroup" className="inline-flex rounded-lg border bg-muted/40 p-0.5">
-      {opts.map(([v, label]) => (
-        <button
-          key={label}
-          type="button"
-          role="radio"
-          aria-checked={value === v}
-          onClick={() => onChange(v)}
-          className={cn(
-            "rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-            value === v ? "bg-background font-medium shadow-sm" : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      id={id}
+      value={value}
+      onChange={onChange}
+      options={[{ value: "true", label: "Yes" }, { value: "false", label: "No" }, { value: "", label: "Unknown" }]}
+    />
   );
 }
 

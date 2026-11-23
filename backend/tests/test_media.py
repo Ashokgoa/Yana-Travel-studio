@@ -5,6 +5,7 @@ import pytest
 from PIL import Image
 
 from app.utils.images import MAX_EDGE, ImageError, process_image
+from tests.conftest import unique_iso
 
 API = "/api/v1"
 
@@ -29,9 +30,8 @@ def upload(c, data, name="photo.jpg", **form):
 
 @pytest.fixture()
 def hotel(admin_client):
-    country = admin_client.post(f"{API}/inventory/countries", json={"name": f"Imgland {random.randint(0, 10**9)}", "iso_code": "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))})
-    if country.status_code == 409:
-        pytest.skip("random ISO collision")
+    country = admin_client.post(f"{API}/inventory/countries", json={"name": f"Imgland {random.randint(0, 10**9)}", "iso_code": unique_iso()})
+    assert country.status_code == 201, country.text
     city = admin_client.post(f"{API}/inventory/cities", json={"country_id": country.json()["id"], "name": "Pic City"}).json()
     return admin_client.post(f"{API}/inventory/hotels", json={"city_id": city["id"], "name": "Photo Hotel"}).json()
 

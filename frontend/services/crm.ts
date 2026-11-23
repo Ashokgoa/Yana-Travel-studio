@@ -15,6 +15,7 @@ import type {
   TravelAgentInput,
   User,
 } from "@/types/crm";
+import type { Requirement, RequirementInput, RequirementOptions } from "@/types/requirements";
 
 export const authApi = {
   me: () => api.get<User>("/auth/me"),
@@ -53,6 +54,12 @@ export const enquiriesApi = {
   update: (id: number, body: EnquiryInput) => api.put<EnquiryDetail>(`/enquiries/${id}`, body),
   changeStatus: (id: number, status: EnquiryStatus, note?: string) =>
     api.post<EnquiryDetail>(`/enquiries/${id}/status`, { status, note }),
+};
+
+export const requirementsApi = {
+  options: () => api.get<RequirementOptions>("/enquiries/requirements/options"),
+  get: (enquiryId: number) => api.get<Requirement>(`/enquiries/${enquiryId}/requirements`),
+  save: (enquiryId: number, body: RequirementInput) => api.put<Requirement>(`/enquiries/${enquiryId}/requirements`, body),
 };
 
 export const dashboardApi = {

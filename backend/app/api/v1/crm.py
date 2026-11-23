@@ -23,7 +23,9 @@ from app.schemas.crm import (
     TravelAgentOut,
     TravelAgentUpdate,
 )
+from app.schemas.requirements import RequirementIn, RequirementOptions, RequirementOut
 from app.services.crm_service import CustomerService, EnquiryService, TravelAgentService
+from app.services.requirement_service import RequirementService
 
 agents = APIRouter(prefix="/travel-agents", tags=["CRM: Travel agents"])
 customers = APIRouter(prefix="/customers", tags=["CRM: Customers"])
@@ -119,6 +121,23 @@ def update_enquiry(enquiry_id: int, body: EnquiryUpdate, db: DB, _: CurrentUser)
 @enquiries.post("/{enquiry_id}/status", response_model=EnquiryDetail, summary="Change status (recorded in history)")
 def change_enquiry_status(enquiry_id: int, body: EnquiryStatusChange, db: DB, user: CurrentUser):
     return EnquiryService(db).change_status(enquiry_id, body, user)
+
+
+@enquiries.get("/requirements/options", response_model=RequirementOptions, summary="Vocabularies for the requirement form")
+def requirement_options(_: CurrentUser):
+    return RequirementOptions()
+
+
+@enquiries.get("/{enquiry_id}/requirements", response_model=RequirementOut,
+               summary="Customer requirements (pre-filled defaults if not captured yet; `exists=false`)")
+def get_requirements(enquiry_id: int, db: DB, _: CurrentUser):
+    return RequirementService(db).get(enquiry_id)
+
+
+@enquiries.put("/{enquiry_id}/requirements", response_model=RequirementOut,
+               summary="Save requirements (draft-friendly; returns `missing` and `warnings`)")
+def save_requirements(enquiry_id: int, body: RequirementIn, db: DB, user: CurrentUser):
+    return RequirementService(db).save(enquiry_id, body, user)
 
 
 # ------------------------------------------------------------------ dashboard

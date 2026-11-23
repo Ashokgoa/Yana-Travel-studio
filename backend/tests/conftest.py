@@ -49,6 +49,15 @@ def client():
         yield test_client
 
 
+_RESERVED_ISO = {"PT", "MT", "QX"}  # used literally by some tests
+_ISO_CODES = iter(a + b for a in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" for b in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if a + b not in _RESERVED_ISO)
+
+
+def unique_iso() -> str:
+    """A two-letter country code never used before in this test session (no random collisions)."""
+    return next(_ISO_CODES)
+
+
 ADMIN = {"email": "admin@example.com", "password": "admin-pass-123", "full_name": "Test Admin"}
 PLANNER = {"email": "planner@example.com", "password": "planner-pass-123", "full_name": "Test Planner"}
 

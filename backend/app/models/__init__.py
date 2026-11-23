@@ -16,6 +16,7 @@ from app.models.inventory import (
     vehicle_countries,
 )
 from app.models.media import Media, MediaLink
+from app.models.requirements import EnquiryDestination, EnquiryRequirement
 from app.models.setting import AppSetting
 from app.models.user import Role, User
 
@@ -27,6 +28,8 @@ __all__ = [
     "Country",
     "Customer",
     "Enquiry",
+    "EnquiryDestination",
+    "EnquiryRequirement",
     "EnquiryStatusHistory",
     "Hotel",
     "HotelRate",

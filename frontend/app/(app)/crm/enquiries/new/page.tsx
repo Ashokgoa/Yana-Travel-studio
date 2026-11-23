@@ -13,7 +13,7 @@ export default function Page() {
       <PageHeader
         back={{ href: "/crm/enquiries", label: "Enquiries" }}
         title="New enquiry"
-        description="Log an incoming request from a travel agent. Detailed travel requirements are captured in the next step (Phase 3)."
+        description="Log an incoming request from a travel agent. Detailed travel requirements are captured in the next step."
       />
       <Suspense>
         <EnquiryForm />

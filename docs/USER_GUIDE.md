@@ -35,6 +35,22 @@ On the enquiry page, **Change status** moves it through *New → In Progress →
 
 Internal notes and comments are for YANA staff only.
 
+## Capturing customer requirements
+
+After creating an enquiry you go straight to **Customer requirements** (also reachable from the enquiry page via *Capture requirements* / *Edit*). Nine short steps, saved each time you press **Save & continue** (or **Save draft** at any point):
+
+1. **Travellers**: adults, children and each child's age.
+2. **Travel**: arrival and departure dates (days and nights are calculated), airports, preferred start and end countries, FIT or GIT.
+3. **Destinations**: add countries and, optionally, specific cities. Mark each one **Must visit** (never dropped), **Preferred**, **Optional** or **Avoid**, optionally with minimum nights. The order is your preferred route order.
+4. **Interests** and travel pace.
+5. **Hotels**: category, location, breakfast, and rooms (shows whether the beds fit everyone).
+6. **Food**: dietary preferences and which meals to include.
+7. **Transport**: vehicle types (several for mixed arrangements), seats, luggage, transfers.
+8. **Budget**: per person or group total (the other is shown for reference), currency, flexibility, class.
+9. **Notes**: customer requests and internal staff-only notes.
+
+The **Readiness** panel lists anything still missing and any conflicts (for example more must-visit places than nights). The final **Review** step shows everything on one page.
+
 ## Destination inventory and suppliers
 
 Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation) and **Suppliers**, everyone can search and view. **Only administrators** can add, edit, deactivate or reactivate.

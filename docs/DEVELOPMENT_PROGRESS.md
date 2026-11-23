@@ -4,13 +4,32 @@
 |---|---|---|
 | 0 | Project foundation | ✅ Complete (2026-11-23) |
 | 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
-| 2 | Destination inventory & images | ✅ Complete (2026-11-24), awaiting approval |
-| 3 | Customer requirement capture | ⏳ Next |
-| 4 | Itinerary engine | Planned |
+| 2 | Destination inventory & images | ✅ Complete (2026-11-24) |
+| 3 | Customer requirement capture | ✅ Complete (2026-11-24), awaiting approval |
+| 4 | Itinerary engine | ⏳ Next |
 | 5 | Visual itinerary builder | Planned |
 | 6 | PDF designer | Planned |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
+
+---
+
+## Phase 3 – Customer requirement capture (2026-11-24)
+
+### Delivered
+- Migration `0004`: `enquiry_requirements` (one per enquiry) and `enquiry_destinations` (country, optional city, preference must-visit/preferred/optional/avoid, minimum nights, order).
+- 9-step wizard (`/crm/enquiries/{id}/requirements`): Travellers, Travel, Destinations, Interests, Hotels, Food, Transport, Budget, Notes, plus a Review step. Saves on every step (drafts allowed), unsaved-changes warning, step progress, and a readiness panel.
+- Pre-filled from the enquiry and customer (travellers, children's ages, dates, budget). Saving keeps the enquiry summary in sync and moves a *New* enquiry to *In Progress* (recorded in its history). New enquiries open the wizard straight away.
+- Validation (PRD 13.2 step 1): **missing** items (dates, airports, destinations, budget) and **warnings** (more must-visit places than nights, minimum nights exceed the trip, start/end country marked avoid, rooms or vehicle too small, budget per person vs total mismatch, Jain verified-only notice). Nothing is silently dropped.
+- Enquiry page shows the full requirements summary and readiness.
+
+### Verification
+- 11 new backend tests incl. the PRD Part 28 scenario (99 total, 3 consecutive runs, no skips).
+- Real browser, **development mode** (catches React warnings): full wizard run with dates, 7 destinations incl. a city and an avoided country, rooms, food, transport, budget, notes, review and finish. All checks pass with zero console warnings or errors.
+- Found and fixed during testing: the review step falsely showed "unsaved changes" after saving (server-normalised values); a duplicate React key in hotel dialogs; random country codes occasionally skipping tests.
+
+### Outstanding
+- Cities dropdown loads up to 100 cities; a searchable picker will be needed for a much larger inventory.
 
 ---
 

@@ -155,8 +155,8 @@ export function EnquiryForm({ enquiry }: { enquiry?: EnquiryDetail }) {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["agents"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(enquiry ? "Enquiry updated" : `Enquiry ${saved.reference} created`);
-      router.push(`/crm/enquiries/${saved.id}`);
+      toast.success(enquiry ? "Enquiry updated" : `Enquiry ${saved.reference} created. Now capture the requirements.`);
+      router.push(enquiry ? `/crm/enquiries/${saved.id}` : `/crm/enquiries/${saved.id}/requirements`);
     },
     onError: (e) => handleFormError(e, setError, FIELDS),
   });
@@ -210,7 +210,7 @@ export function EnquiryForm({ enquiry }: { enquiry?: EnquiryDetail }) {
             </div>
           </FormSection>
 
-          <FormSection title="Trip" description="High-level details. Full requirements (countries, hotels, food, transport) are captured in Phase 3.">
+          <FormSection title="Trip" description="High-level details. Full requirements (destinations, hotels, food, transport) are captured in the next step.">
             <div className="grid gap-4 sm:grid-cols-4">
               <FormField label="Travel from" htmlFor="enq-travel_start_date" error={errors.travel_start_date?.message} className="sm:col-span-2">
                 <input type="date" className={controlClass} {...field("travel_start_date")} />

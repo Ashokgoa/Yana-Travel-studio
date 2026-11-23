@@ -56,6 +56,12 @@ Native selects work directly with react-hook-form, are accessible and keyboard-f
 ### TD-018 · Same-origin API through a Next.js rewrite; LAN sharing on one port
 The browser always calls `/api/v1/*` on the address it loaded the app from, and `next.config.ts` rewrites that to `BACKEND_URL` (default `http://127.0.0.1:8000`). Benefits: colleagues on the network need only port 3000; the backend never listens on the network; the session cookie is same-origin, so it works by IP address without CORS or SameSite issues. `NEXT_PUBLIC_API_BASE_URL` was removed. Shared mode (`scripts/start-shared.ps1`) uses the production server (`next start --hostname 0.0.0.0`), because the dev server blocks other hostnames and uses far more memory. The firewall rule covers Domain and Private profiles only. Plain HTTP is acceptable only on trusted networks; internet exposure requires HTTPS (cloud phase).
 
+### TD-022 · Requirements: draft-friendly saves, reported (not enforced) completeness
+Planners often capture requirements in several sittings, so `PUT` accepts partial data while still validating types, vocabularies and consistency. Completeness (`missing`) and conflicts (`warnings`) are computed on every read; the itinerary engine (Phase 4) will refuse to generate until `missing` is empty, and will surface the warnings. The enquiry summary (dates, travellers, budget) is synced from the requirements to keep lists and the dashboard consistent. The first save moves *New* enquiries to *In Progress*, recorded in the status history.
+
+### TD-023 · Browser checks run in development mode too
+Production builds hide React development warnings (a duplicate-key warning slipped through). Browser checks now also run against an isolated `next dev` server (`NEXT_DIST_DIR=.next-test`, separate ports and test database), so warnings are caught without disturbing the developer's own running app.
+
 ### TD-021 · Image pipeline and serving (Phase 2c)
 Pillow validates by content (not the extension), caps pixels against decompression bombs, applies EXIF orientation and re-encodes, which drops all metadata including GPS (a privacy requirement for phone photos). The long edge is capped at 2400 px (enough for A4 brochures), plus a 480 px JPEG thumbnail. Dedupe uses SHA-256 of the original bytes. Files are served through authenticated API routes, with `?v=<hash>` URLs and `immutable` caching; replacing a file changes the hash, which busts caches. Uploads go through the Next.js rewrite like all other API calls (verified with real browser uploads).
 

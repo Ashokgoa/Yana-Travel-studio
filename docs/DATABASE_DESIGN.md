@@ -31,12 +31,14 @@ Status legend: ✅ migrated · others planned (phase in heading)
 
 Rules enforced in services: a customer linked to agent A can't appear on an enquiry for agent B; new customers or enquiries can't be created for inactive agents; children_ages length must equal children (ages 0–17).
 
-## Requirements (Phase 3)
+## Requirements (Phase 3) ✅ migration `0004`
 
 | Table | Key columns |
 |---|---|
 | `enquiry_requirements` (1:1 enquiry) | arrival_date, departure_date, total_days, total_nights, arrival_airport, departure_airport, start_country_id, end_country_id, travel_type (FIT/GIT), group_size, adults, children, children_ages, interests JSON, hotel_categories JSON, hotel_location_prefs JSON, breakfast_required, room_types JSON, rooms_count, food_preferences JSON, meal_plan (enum), selected_meals JSON, transport_modes JSON, luggage_notes, airport_transfers, local_transport, budget_per_person, budget_total, currency, budget_flexibility (enum), travel_class, additional_requirements, internal_notes |
-| `enquiry_destinations` | requirement_id →, country_id →, city_id → (nullable), preference (mandatory / preferred / optional / avoid), sort_order |
+| `enquiry_destinations` | requirement_id → (CASCADE), country_id → (RESTRICT), city_id → (nullable), preference (mandatory / preferred / optional / avoid), min_nights, sort_order |
+
+As built: `rooms` is JSON `[{type, count}]`, `meals` a JSON list, plus `travel_pace`, `completed_steps` and `updated_by_id`. Totals (days, nights, room capacity), `missing` and `warnings` are computed when read, not stored.
 
 ## Destination inventory (Phase 2) ✅ migration `0003`
 

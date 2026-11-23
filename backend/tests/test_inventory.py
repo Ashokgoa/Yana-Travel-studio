@@ -2,6 +2,8 @@ import uuid
 
 import pytest
 
+from tests.conftest import unique_iso
+
 API = "/api/v1/inventory"
 
 
@@ -10,7 +12,7 @@ def _uid() -> str:
 
 
 def _country(c, **kw):
-    iso = kw.pop("iso_code", None) or "".join(chr(65 + (b % 26)) for b in uuid.uuid4().bytes[:2])
+    iso = kw.pop("iso_code", None) or unique_iso()
     r = c.post(f"{API}/countries", json={"name": f"Country {_uid()}", "iso_code": iso, "region": "Western Europe", **kw})
     assert r.status_code == 201, r.text
     return r.json()

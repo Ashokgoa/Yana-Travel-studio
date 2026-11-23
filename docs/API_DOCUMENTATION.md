@@ -140,5 +140,13 @@ Also: `GET /inventory/options` (vocabularies for forms: categories, interest tag
 
 Errors: `invalid_image` (422, not a real/allowed image), `file_too_large` (413), `duplicate_image` (409 on replace), `already_linked` (409).
 
+### Customer requirements (Phase 3)
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/enquiries/requirements/options` | Vocabularies (preferences, interests, hotel categories, room types, food, meals, transport, pace, flexibility, class) |
+| GET | `/enquiries/{id}/requirements` | Saved requirements, or defaults pre-filled from the enquiry (`exists: false`). Always includes `total_days`, `total_nights`, `total_travellers`, `rooms_count`, `room_capacity`, `missing[]`, `warnings[]`, `is_complete` |
+| PUT | `/enquiries/{id}/requirements` | Save (draft-friendly). Validates vocabularies, children's ages, date order, duplicate destinations, and that each city belongs to its country (`400 city_country_mismatch`). Syncs the enquiry summary; first save moves a *New* enquiry to *In Progress* |
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowRight, Pencil, RefreshCcw } from "lucide-react";
+import { ArrowRight, ClipboardList, Pencil, RefreshCcw } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { controlClass, FormField, NativeSelect } from "@/components/common/form-controls";
@@ -15,7 +15,8 @@ import { EnquiryStatusBadge } from "@/components/common/status-badge";
 import { travellerSummary } from "@/features/crm/customers/customers-table";
 import { ENQUIRY_STATUS_LABELS, formatDate, formatDateTime, formatMoney, tripLength } from "@/lib/format";
 import { handleFormError } from "@/lib/form-errors";
-import { enquiriesApi } from "@/services/crm";
+import { enquiriesApi, requirementsApi } from "@/services/crm";
+import { ReadinessList, RequirementsSummary } from "@/features/requirements/requirements-summary";
 import { ENQUIRY_STATUSES, type EnquiryDetail, type EnquiryStatus } from "@/types/crm";
 
 function StatusDialog({ enquiry, open, onOpenChange }: { enquiry: EnquiryDetail; open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -71,6 +72,49 @@ function StatusDialog({ enquiry, open, onOpenChange }: { enquiry: EnquiryDetail;
         </FormField>
       </form>
     </FormDialog>
+  );
+}
+
+function RequirementsCard({ enquiryId }: { enquiryId: number }) {
+  const req = useQuery({ queryKey: ["requirements", enquiryId], queryFn: () => requirementsApi.get(enquiryId) });
+  const href = `/crm/enquiries/${enquiryId}/requirements`;
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <div>
+          <CardTitle>Customer requirements</CardTitle>
+          {req.data?.exists && (
+            <p className="mt-1 text-xs text-muted-foreground">{req.data.completed_steps.length} of 9 steps saved</p>
+          )}
+        </div>
+        {req.data?.exists && (
+          <Link href={href} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <Pencil aria-hidden /> Edit
+          </Link>
+        )}
+      </CardHeader>
+      <CardContent>
+        {req.isPending ? (
+          <TableSkeleton rows={2} />
+        ) : req.isError ? (
+          <ErrorState message={req.error.message} onRetry={() => req.refetch()} />
+        ) : !req.data.exists ? (
+          <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed p-6 sm:flex-row sm:items-center">
+            <ClipboardList className="size-6 text-brand-teal" aria-hidden />
+            <div className="flex-1 text-sm">
+              <p className="font-medium">No detailed requirements yet</p>
+              <p className="text-muted-foreground">Capture destinations, interests, hotels, food, transport and budget in 9 short steps.</p>
+            </div>
+            <Link href={href} className={buttonVariants()}>Capture requirements</Link>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <RequirementsSummary req={req.data} />
+            <div className="rounded-xl border bg-muted/20 p-4"><ReadinessList req={req.data} /></div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -147,12 +191,7 @@ export function EnquiryDetailView({ id }: { id: number }) {
             </CardContent>
           </Card>
 
-          <Card className="border-dashed bg-muted/30">
-            <CardContent className="flex flex-col gap-2 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-              <span className="font-medium text-foreground">Next:</span>
-              Detailed requirement capture and itinerary generation will be available here in Phases 3–4.
-            </CardContent>
-          </Card>
+          <RequirementsCard enquiryId={e.id} />
         </div>
 
         <div className="space-y-6">

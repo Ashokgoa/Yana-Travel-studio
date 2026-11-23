@@ -10,6 +10,9 @@ import type { NextConfig } from "next";
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
+  // Test-only: lets an isolated second dev server run next to your own (Next allows
+  // one dev server per build folder). Unset in normal use.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

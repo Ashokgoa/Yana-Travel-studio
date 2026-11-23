@@ -79,6 +79,10 @@ class Enquiry(IdMixin, TimestampMixin, Base):
         back_populates="enquiry", cascade="all, delete-orphan", order_by="EnquiryStatusHistory.id"
     )
 
+    requirement: Mapped["EnquiryRequirement | None"] = relationship(  # noqa: F821
+        "EnquiryRequirement", uselist=False, cascade="all, delete-orphan", viewonly=False
+    )
+
     @property
     def total_travellers(self) -> int:
         return self.adults + self.children
