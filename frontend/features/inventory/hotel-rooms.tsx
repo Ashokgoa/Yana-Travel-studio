@@ -252,8 +252,9 @@ export function HotelRooms({ hotel, canEdit }: { hotel: Hotel; canEdit: boolean 
         </CardContent>
       </Card>
 
-      <RoomTypeDialog key={editKey(roomEditing)} hotel={hotel} editing={roomEditing} onClose={() => setRoomEditing(null)} />
-      <RateDialog key={editKey(rateEditing)} hotel={hotel} editing={rateEditing} onClose={() => setRateEditing(null)} />
+      {/* Sibling keys must be unique: prefix each dialog's remount key. */}
+      <RoomTypeDialog key={`room-${editKey(roomEditing)}`} hotel={hotel} editing={roomEditing} onClose={() => setRoomEditing(null)} />
+      <RateDialog key={`rate-${editKey(rateEditing)}`} hotel={hotel} editing={rateEditing} onClose={() => setRateEditing(null)} />
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(o) => !o && setDeleting(null)}
