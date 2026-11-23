@@ -9,7 +9,7 @@ Relational schema managed by SQLAlchemy 2 + Alembic. SQLite locally; portable to
 - Multi-select enum preferences (interests, food types…) are stored as JSON arrays of **validated enum codes** (validated by Pydantic). Destinations, which need FKs, get proper link tables.
 - Demo data: `is_demo` flag on inventory and supplier rows.
 
-Status legend: ✅ migrated · 🔜 planned (phase)
+Status legend: ✅ migrated · others planned (phase in heading)
 
 ## Platform
 
@@ -19,14 +19,17 @@ Status legend: ✅ migrated · 🔜 planned (phase)
 | `users` | email (unique), full_name, password_hash (nullable until auth), is_active, role_id → roles (RESTRICT) | ✅ P0 |
 | `app_settings` | key (unique), value JSON, description. Holds branding, default margin, T&Cs, contact block | ✅ P0 |
 
-## CRM (Phase 1)
+## CRM (Phase 1) ✅ migration `0002`
 
 | Table | Key columns |
 |---|---|
-| `travel_agents` | company_name, contact_person, email, phone, country (free text/ISO; agents may be outside Europe), address, company_details, internal_notes, status (active/inactive) |
-| `customers` | travel_agent_id →, name, phone, email, nationality, country_of_residence, adults, children, children_ages JSON[int], special_requirements |
-| `enquiries` | reference (unique, e.g. `ENQ-2026-0001`), travel_agent_id →, customer_id →, enquiry_date, status (enum: new, in_progress, proposal_generated, sent_to_agent, revision_requested, approved, booking_confirmed, cancelled), assigned_planner_id → users, internal_comments |
-| `enquiry_status_history` | enquiry_id →, from_status, to_status, changed_by, note |
+| `travel_agents` | company_name (idx), contact_person, email (idx), phone, country (free text, idx; agents may be outside Europe), address, company_details, internal_notes, status (`active`/`inactive`, idx) |
+| `customers` | travel_agent_id → travel_agents (RESTRICT, nullable = direct customer), name (idx), phone, email, nationality, country_of_residence, adults, children, children_ages JSON[int], special_requirements, is_active |
+| `enquiries` | reference (unique, `ENQ-YYYY-NNNN`), travel_agent_id → (RESTRICT), customer_id → (RESTRICT), enquiry_date, travel_start_date, travel_end_date, adults, children, destination_preferences (free text until Phase 3), budget_amount Numeric(12,2), budget_currency, budget_basis (`per_person`/`total`), status (8 PRD values, idx), assigned_planner_id → users (SET NULL), internal_comments |
+| `enquiry_status_history` | enquiry_id → (CASCADE), from_status, to_status, changed_by_id → users (SET NULL), note, created_at |
+| `reference_counters` | prefix, year, last_value · unique(prefix, year). Atomic `UPDATE … RETURNING` increment for references |
+
+Rules enforced in services: a customer linked to agent A can't appear on an enquiry for agent B; new customers or enquiries can't be created for inactive agents; children_ages length must equal children (ages 0–17).
 
 ## Requirements (Phase 3)
 

@@ -2,15 +2,42 @@
 
 | Phase | Name | Status |
 |---|---|---|
-| 0 | Project foundation | ✅ Complete (2026-11-23), awaiting approval |
-| 1 | UI foundation & CRM | ⏳ Next |
-| 2 | Destination inventory & images | Planned |
+| 0 | Project foundation | ✅ Complete (2026-11-23) |
+| 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
+| 2 | Destination inventory & images | ⏳ Next |
 | 3 | Customer requirement capture | Planned |
 | 4 | Itinerary engine | Planned |
 | 5 | Visual itinerary builder | Planned |
 | 6 | PDF designer | Planned |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
+
+---
+
+## Phase 1 – UI foundation & CRM (2026-11-23)
+
+### Decisions applied
+- **Real login** (decided by YANA): email + password, Argon2 hashes, signed session token in an HttpOnly cookie, roles enforced by the backend.
+- **Enquiry reference format** (decided by YANA): `ENQ-2026-0001` (prefix, year, running number that restarts each year).
+
+### Delivered
+- **Auth & roles**: `/auth/login|logout|me`; Administrator / Travel Planner; admin-only user management (`/users`), with protections against removing the last admin or deactivating yourself. `scripts\setup.ps1` generates `YANA_SECRET_KEY` and prompts for the first admin; `scripts\create-admin.ps1` adds more.
+- **Travel agents**: create, edit, view, search (name/contact/email/phone), filter by status and country, deactivate/reactivate, customer and enquiry counts.
+- **Customers**: create, edit, view, search, filter by agent and status; traveller counts with per-child ages (validated); linked to an agent or "direct".
+- **Enquiries**: auto-numbered references, all 8 PRD statuses, status changes recorded with who/when/note, assigned planner, budget (amount, currency, per person/group), travel dates with day/night count, internal comments. Search plus filters by status, agent, planner and date range. Guards against mismatched agent/customer and inactive agents.
+- **Dashboard**: PRD Part 20 metrics (total, new, in progress, proposals generated, awaiting response, approved, confirmed), recent enquiries, quick actions, system status (admins).
+- **UI**: login page, role-aware sidebar with user menu and sign-out, reusable components (page header, form field, native select, search, pagination, empty/error/loading states, status badges, form dialog, confirm dialog), field-level server validation messages, toasts.
+
+### Verification
+- Backend: **49 pytest tests pass** (auth, permissions, user admin, CRM CRUD/search/filter/pagination, validation, reference sequence, status history, dashboard counts, migrations).
+- Frontend: typecheck, ESLint, **5 Vitest tests**, production build all pass.
+- End-to-end against a throwaway database: an API script exercised the full workflow, and headless Edge logged in through the real login form and rendered every screen with **zero console errors**. This visual check found and fixed: preselected dropdown values lost while options load, a clipped dashboard table, and badge fonts inside headings.
+
+### Outstanding / known issues
+- Agent/customer dropdowns load up to 100 active records; a searchable picker will be needed as the agent list grows.
+- `npm audit`: still the same 4 moderate advisories as Phase 0 (shadcn CLI dev tooling → `minimatch`), none in app runtime code.
+- Starlette `httpx2` deprecation warning (unchanged from Phase 0).
+- Brand colours, fonts and logo are still placeholders.
 
 ---
 

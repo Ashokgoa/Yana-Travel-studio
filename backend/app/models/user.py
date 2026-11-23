@@ -1,7 +1,7 @@
 """Users and roles.
 
-Phase 0 creates the tables only. Authentication (password hashing, sessions)
-is implemented in Phase 1; `password_hash` stays nullable until then.
+Passwords are stored as Argon2 hashes (see app/core/security.py).
+A user without a password hash cannot log in.
 """
 
 from sqlalchemy import Boolean, ForeignKey, String

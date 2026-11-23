@@ -3,19 +3,36 @@ import { NAVIGATION, visibleNavigation, type NavItem } from "@/features/navigati
 
 describe("visibleNavigation", () => {
   it("hides modules that are not implemented yet", () => {
-    const labels = visibleNavigation().map((i) => i.label);
+    const labels = visibleNavigation("planner").map((i) => i.label);
     expect(labels).toContain("Dashboard");
+    expect(labels).toContain("CRM");
     expect(labels).not.toContain("PDF Designer");
   });
 
-  it("hides disabled children of an enabled module", () => {
+  it("shows Administration only to admins", () => {
+    expect(visibleNavigation("admin").map((i) => i.label)).toContain("Administration");
+    expect(visibleNavigation("planner").map((i) => i.label)).not.toContain("Administration");
+    expect(visibleNavigation(undefined).map((i) => i.label)).not.toContain("Administration");
+  });
+
+  it("shows every CRM page", () => {
+    const crm = visibleNavigation("planner").find((i) => i.label === "CRM");
+    expect(crm?.children?.map((c) => c.label)).toEqual(["Travel Agents", "Customers", "Enquiries"]);
+  });
+
+  it("hides disabled children and drops sections left empty", () => {
     const items: NavItem[] = [
-      { label: "CRM", href: "/crm", enabled: true, children: [
-        { label: "Agents", href: "/crm/agents", enabled: true },
-        { label: "Customers", href: "/crm/customers", enabled: false },
-      ] },
+      {
+        label: "CRM", href: "/crm", enabled: true, children: [
+          { label: "Agents", href: "/crm/agents", enabled: true },
+          { label: "Customers", href: "/crm/customers", enabled: false },
+        ],
+      },
+      { label: "Empty", href: "/e", enabled: true, children: [{ label: "X", href: "/e/x", enabled: false }] },
     ];
-    expect(visibleNavigation(items)[0].children?.map((c) => c.label)).toEqual(["Agents"]);
+    const visible = visibleNavigation("planner", items);
+    expect(visible.map((i) => i.label)).toEqual(["CRM"]);
+    expect(visible[0].children?.map((c) => c.label)).toEqual(["Agents"]);
   });
 
   it("defines every PRD sidebar module in order", () => {

@@ -2,7 +2,7 @@
 
 Local-first B2B travel management and itinerary-proposal platform for **YANA DMC**. It turns travel-agent requirements into customised European itineraries and branded PDF proposals.
 
-> **Status:** Phase 0 (foundation) complete. See [docs/DEVELOPMENT_PROGRESS.md](docs/DEVELOPMENT_PROGRESS.md).
+> **Status:** Phase 1 (UI foundation & CRM) complete. See [docs/DEVELOPMENT_PROGRESS.md](docs/DEVELOPMENT_PROGRESS.md).
 
 ## Tech stack
 
@@ -26,7 +26,9 @@ Local-first B2B travel management and itinerary-proposal platform for **YANA DMC
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 ```
 
-This creates `backend\.venv`, installs dependencies, runs database migrations, installs frontend packages, and copies `.env.example` → `.env` / `frontend\.env.local`.
+This creates `backend\.venv`, installs dependencies, creates `.env` with a random `YANA_SECRET_KEY`, runs database migrations, **asks you to create the first administrator** (email, name, password), installs frontend packages and creates `frontend\.env.local`. It's safe to re-run.
+
+Add another administrator later with `scripts\create-admin.ps1`; other users are managed in the app under **Administration → Users**.
 
 ## Run
 

@@ -37,3 +37,18 @@ Great-circle distance × road factor plus average speed, flagged `is_estimate=tr
 
 ### TD-012 · PDF route maps as offline SVG (planned, Phase 6)
 This avoids live tile fetching in headless Chromium and keeps us within OSM tile usage policy. Leaflet is used for the interactive UI only.
+
+### TD-013 · Authentication: Argon2 + signed token in an HttpOnly cookie (Phase 1)
+YANA chose real login. Passwords are hashed with Argon2 (`pwdlib`). Login returns a JWT (HS256, `YANA_SECRET_KEY`, 12 h default) in an **HttpOnly, SameSite=Lax** cookie, so JavaScript can't read it. The backend also accepts `Authorization: Bearer` for API clients and tests. Login errors are identical for unknown email and wrong password. Roles are checked server-side (`require_roles`); the frontend hides admin-only UI but never relies on that for security. The token approach can later be replaced by Microsoft Entra ID without changing the endpoints' permission checks.
+
+### TD-014 · Enquiry status: any change allowed, every change recorded (Phase 1)
+Real workflows jump (e.g. straight to Cancelled), so there's no transition matrix yet. Every change writes `enquiry_status_history` (from, to, who, when, note). Phase 6 will set `proposal_generated` automatically.
+
+### TD-015 · Enquiry references via a counter table
+`reference_counters` (prefix, year) is incremented with `UPDATE … RETURNING`, which is atomic on SQLite and PostgreSQL. Numbers restart each year: `ENQ-2026-0001`.
+
+### TD-016 · Styled native `<select>` instead of Base UI Select in forms
+Native selects work directly with react-hook-form, are accessible and keyboard-friendly by default, and avoid Base UI Select's value/label API. Because options often load asynchronously, forms re-apply their value once options arrive (see `enquiry-form.tsx`).
+
+### TD-017 · Next 16: auth boundary inside Suspense; pages set `instant = false`
+`RequireAuth` uses `usePathname`, which Next 16 requires inside `<Suspense>` for prerendering. Authenticated pages wait for the browser-side session check, so each page in `app/(app)` exports `instant = false`. A layout-level setting did not silence the per-page dev validation.

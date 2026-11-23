@@ -13,11 +13,24 @@ export class ApiError extends Error {
   }
 }
 
+export type QueryParams = Record<string, string | number | boolean | null | undefined>;
+
+export function withQuery(path: string, params?: QueryParams): string {
+  if (!params) return path;
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") search.set(key, String(value));
+  }
+  const qs = search.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
+      credentials: "include", // send the HttpOnly session cookie
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
@@ -27,9 +40,18 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     const body = (await response.json().catch(() => undefined)) as ApiErrorBody | undefined;
     throw new ApiError(body?.message ?? `Request failed (${response.status})`, response.status, body);
   }
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 
+export const api = {
+  get: <T>(path: string, params?: QueryParams) => apiFetch<T>(withQuery(path, params), { cache: "no-store" }),
+  post: <T>(path: string, body?: unknown) =>
+    apiFetch<T>(path, { method: "POST", body: body === undefined ? undefined : JSON.stringify(body) }),
+  put: <T>(path: string, body: unknown) => apiFetch<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+  patch: <T>(path: string, body: unknown) => apiFetch<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
+};
+
 export const systemApi = {
-  health: () => apiFetch<HealthResponse>("/health", { cache: "no-store" }),
+  health: () => api.get<HealthResponse>("/health"),
 };

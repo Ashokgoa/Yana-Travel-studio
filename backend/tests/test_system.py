@@ -5,7 +5,7 @@ def test_health_reports_ok_after_migration(client):
     assert body["status"] == "ok"
     assert body["environment"] == "test"
     assert body["database"]["status"] == "ok"
-    assert "migration 0001" in body["database"]["detail"]
+    assert "migration 0002" in body["database"]["detail"]
 
 
 def test_startup_creates_storage_layout(client, tmp_root):

@@ -49,6 +49,49 @@ def client():
         yield test_client
 
 
+ADMIN = {"email": "admin@example.com", "password": "admin-pass-123", "full_name": "Test Admin"}
+PLANNER = {"email": "planner@example.com", "password": "planner-pass-123", "full_name": "Test Planner"}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def seeded_users(migrated_database):
+    from app.database.session import SessionLocal
+    from app.models.enums import RoleCode
+    from app.schemas.user import UserCreate
+    from app.services.user_service import UserService
+
+    with SessionLocal() as db:
+        service = UserService(db)
+        service.create(UserCreate(role=RoleCode.ADMIN, **ADMIN))
+        service.create(UserCreate(role=RoleCode.PLANNER, **PLANNER))
+
+
+def _logged_in_client(credentials: dict):
+    from app.main import create_app
+
+    test_client = TestClient(create_app())
+    test_client.__enter__()
+    response = test_client.post(
+        "/api/v1/auth/login", json={"email": credentials["email"], "password": credentials["password"]}
+    )
+    assert response.status_code == 200, response.text
+    return test_client
+
+
+@pytest.fixture()
+def admin_client():
+    c = _logged_in_client(ADMIN)
+    yield c
+    c.__exit__(None, None, None)
+
+
+@pytest.fixture()
+def planner_client():
+    c = _logged_in_client(PLANNER)
+    yield c
+    c.__exit__(None, None, None)
+
+
 @pytest.fixture()
 def db_session():
     from app.database.session import SessionLocal

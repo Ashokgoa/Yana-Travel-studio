@@ -10,6 +10,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import type { RoleCode } from "@/types/crm";
 
 export type NavItem = {
   label: string;
@@ -17,6 +18,8 @@ export type NavItem = {
   icon?: LucideIcon;
   /** Modules are hidden until implemented (PRD 5.2). Flip to true when a phase ships. */
   enabled: boolean;
+  /** Restrict to these roles; omitted = every signed-in user. */
+  roles?: RoleCode[];
   children?: NavItem[];
 };
 
@@ -26,11 +29,11 @@ export const NAVIGATION: NavItem[] = [
     label: "CRM",
     href: "/crm",
     icon: Users,
-    enabled: false, // Phase 1
+    enabled: true,
     children: [
-      { label: "Travel Agents", href: "/crm/agents", enabled: false },
-      { label: "Customers", href: "/crm/customers", enabled: false },
-      { label: "Enquiries", href: "/crm/enquiries", enabled: false },
+      { label: "Travel Agents", href: "/crm/agents", enabled: true },
+      { label: "Customers", href: "/crm/customers", enabled: true },
+      { label: "Enquiries", href: "/crm/enquiries", enabled: true },
     ],
   },
   {
@@ -63,12 +66,24 @@ export const NAVIGATION: NavItem[] = [
   { label: "Pricing & Costing", href: "/pricing", icon: Calculator, enabled: false },
   { label: "PDF Designer", href: "/pdf-designer", icon: FileText, enabled: false },
   { label: "Bookings", href: "/bookings", icon: CalendarCheck, enabled: false },
-  { label: "Administration", href: "/admin", icon: Settings, enabled: false },
+  {
+    label: "Administration",
+    href: "/admin",
+    icon: Settings,
+    enabled: true,
+    roles: ["admin"],
+    children: [{ label: "Users", href: "/admin/users", enabled: true, roles: ["admin"] }],
+  },
 ];
 
-/** Only implemented modules (and their implemented children) are shown. */
-export function visibleNavigation(items: NavItem[] = NAVIGATION): NavItem[] {
+function allowed(item: NavItem, role?: RoleCode) {
+  return item.enabled && (!item.roles || (role !== undefined && item.roles.includes(role)));
+}
+
+/** Only implemented modules the current role may use are shown. Sections with no visible children are dropped. */
+export function visibleNavigation(role?: RoleCode, items: NavItem[] = NAVIGATION): NavItem[] {
   return items
-    .filter((item) => item.enabled)
-    .map((item) => ({ ...item, children: item.children?.filter((c) => c.enabled) }));
+    .filter((item) => allowed(item, role))
+    .map((item) => ({ ...item, children: item.children?.filter((c) => allowed(c, role)) }))
+    .filter((item) => !item.children || item.children.length > 0);
 }

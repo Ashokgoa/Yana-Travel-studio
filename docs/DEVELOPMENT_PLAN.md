@@ -69,7 +69,7 @@ See [DATABASE_DESIGN.md](DATABASE_DESIGN.md). Phase 0 migrates `roles`, `users` 
 | Phase | Milestone | Key acceptance checks |
 |---|---|---|
 | 0 | Foundation | Both apps start; DB migrates; `/docs` reachable; tests pass ✅ |
-| 1 | UI foundation, roles, CRM (agents, customers, enquiries + status workflow), dashboard counters | CRUD, search and filter; enquiry status transitions; role-gated UI |
+| 1 | UI foundation, roles, CRM (agents, customers, enquiries + status workflow), dashboard counters | CRUD, search and filter; enquiry status transitions; role-gated UI ✅ |
 | 2 | Inventory (countries → cities → attractions/hotels/restaurants, suppliers, vehicles), central media library, demo seed | Add a country/city without code changes; multi-image upload, reorder and primary; path-traversal and size tests |
 | 3 | Multi-step requirement capture (9 steps, draft autosave) | Structured requirements saved and reloaded exactly |
 | 4 | Itinerary engine: validate → destinations → route → nights → attractions → hotels → restaurants → transport → cost estimate → 3 strategies | PRD business test cases 1–10 and 15; day/night consistency; mandatory destinations never dropped |
@@ -105,11 +105,11 @@ See [DATABASE_DESIGN.md](DATABASE_DESIGN.md). Phase 0 migrates `roles`, `users` 
 
 **Platform**
 
-14. Is **login** required for the local single-laptop MVP, or a simple role switcher until cloud deployment?
-15. **Enquiry ID format** (proposed: `ENQ-2026-0001`).
+14. ~~Login for the local MVP?~~ **Decided:** real login with roles (Phase 1).
+15. ~~Enquiry ID format~~ **Decided:** `ENQ-2026-0001`, yearly sequence.
 16. **Image rights**: are supplier/stock photos licensed for use in proposals? Any approved stock source?
 17. Should demo data be removable in one click once real inventory is loaded?
 
 ## 7. Assumptions made until decided
 
-EUR base currency · English only · Admin and Planner both see internal costs (customer PDFs never do) · no login in Phase 0 (role model exists; auth decision in Phase 1) · placeholder brand palette · route distances are estimates.
+EUR base currency · English only · Admin and Planner both see internal costs (customer PDFs never do) · real login with Admin/Planner roles (decided) · placeholder brand palette · route distances are estimates.

@@ -20,7 +20,7 @@ def test_user_requires_valid_role_foreign_key(db_session):
 
 def test_user_created_with_timestamps(db_session):
     role = db_session.scalar(select(Role).where(Role.code == "planner"))
-    user = User(email="planner@example.com", full_name="Planner", role=role)
+    user = User(email="timestamps@example.com", full_name="Planner", role=role)
     db_session.add(user)
     db_session.flush()
     assert user.id is not None

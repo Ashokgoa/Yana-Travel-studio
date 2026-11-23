@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 
 const PHASES = [
   { id: 0, name: "Project foundation", status: "done" },
-  { id: 1, name: "UI foundation & CRM", status: "next" },
-  { id: 2, name: "Destination inventory & images", status: "planned" },
+  { id: 1, name: "UI foundation & CRM", status: "done" },
+  { id: 2, name: "Destination inventory & images", status: "next" },
   { id: 3, name: "Customer requirement capture", status: "planned" },
   { id: 4, name: "Itinerary engine", status: "planned" },
   { id: 5, name: "Visual itinerary builder", status: "planned" },

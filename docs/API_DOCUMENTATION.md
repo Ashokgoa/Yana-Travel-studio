@@ -43,4 +43,62 @@ Example response:
 }
 ```
 
-_Further endpoints are documented here as each phase ships._
+## Authentication
+
+All endpoints except `GET /health` and `POST /auth/login` need a signed-in user. Browsers use the HttpOnly `yana_session` cookie set by login (send requests with `credentials: "include"`); API clients may send `Authorization: Bearer <token>`. `401 not_authenticated` = sign in again; `403 forbidden` = role not allowed.
+
+| Method | Path | Roles | Description |
+|---|---|---|---|
+| POST | `/auth/login` | public | Body `{email, password}`. Sets the session cookie, returns the user |
+| POST | `/auth/logout` | any | Clears the cookie (204) |
+| GET | `/auth/me` | any | Current user with role |
+
+### Users (Administration)
+
+| Method | Path | Roles | Description |
+|---|---|---|---|
+| GET | `/users?q=&role=&active=` | admin | List users |
+| POST | `/users` | admin | `{email, full_name, role: admin or planner, password (min 8)}` |
+| PATCH | `/users/{id}` | admin | Any of `{full_name, role, is_active, password}`. Can't remove the last active admin or deactivate yourself (409) |
+| GET | `/users/assignable` | any | Active users as `{id, full_name}`, for planner pickers |
+
+### Dashboard
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/dashboard/summary` | `total_enquiries`, `by_status` (all 8 statuses), `active_agents`, `customers`, `recent_enquiries` (6) |
+
+### Travel agents
+
+List endpoints return `{items, total, page, page_size}` and accept `page` (from 1) and `page_size` (1–100, default 20).
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/travel-agents?q=&status=&country=` | Search company/contact/email/phone; filter by status and country |
+| GET | `/travel-agents/countries` | Distinct countries (for filters) |
+| GET | `/travel-agents/{id}` | Includes `customer_count`, `enquiry_count` |
+| POST | `/travel-agents` | Create (`company_name` required) |
+| PUT | `/travel-agents/{id}` | Full update |
+| PATCH | `/travel-agents/{id}/status` | `{status: active or inactive}` (deactivate/reactivate) |
+
+### Customers
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/customers?q=&travel_agent_id=&active=` | Search name/email/phone |
+| GET | `/customers/{id}` | Includes linked agent and `enquiry_count` |
+| POST | `/customers` | `children_ages` must list one age (0–17) per child; agent must be active |
+| PUT | `/customers/{id}` | Full update (incl. `is_active`) |
+
+### Enquiries
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/enquiries?q=&status=&travel_agent_id=&customer_id=&assigned_planner_id=&date_from=&date_to=` | Search reference/customer/agent/destinations |
+| GET | `/enquiries/{id}` | Includes `status_history` |
+| POST | `/enquiries` | Creates with status `new` and reference `ENQ-YYYY-NNNN` |
+| PUT | `/enquiries/{id}` | Update (reference and status unchanged) |
+| POST | `/enquiries/{id}/status` | `{status, note?}`. Recorded in history; 409 if unchanged |
+
+Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
+

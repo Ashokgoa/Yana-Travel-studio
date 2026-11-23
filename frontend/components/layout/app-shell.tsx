@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import { AppSidebar, SidebarBrand, SidebarNav } from "@/components/layout/app-sidebar";
+import { AppSidebar, SidebarBrand, SidebarNav, SidebarUser } from "@/components/layout/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
@@ -15,10 +15,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Tablet / narrow screens: slide-over navigation */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-64 border-none bg-sidebar p-0">
+        <SheetContent side="left" className="flex w-64 flex-col border-none bg-sidebar p-0">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SidebarBrand />
           <SidebarNav onNavigate={() => setMobileOpen(false)} />
+          <div className="mt-auto">
+            <SidebarUser />
+          </div>
         </SheetContent>
       </Sheet>
 
