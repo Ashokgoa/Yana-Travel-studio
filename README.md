@@ -28,6 +28,8 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 
 This creates `backend\.venv`, installs dependencies, creates `.env` with a random `YANA_SECRET_KEY`, runs database migrations, **asks you to create the first administrator** (email, name, password), installs frontend packages and creates `frontend\.env.local`. It's safe to re-run.
 
+Optional: load demonstration inventory (8 countries, real attractions, fictional DEMO hotels and restaurants) into an empty inventory with `cd backend; .\.venv\Scripts\python.exe -m app.cli seed-demo`.
+
 Add another administrator later with `scripts\create-admin.ps1`; other users are managed in the app under **Administration → Users**.
 
 ## Run

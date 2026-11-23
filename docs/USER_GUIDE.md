@@ -34,3 +34,14 @@ Enquiry counts by stage, recent enquiries, quick actions. Administrators also se
 On the enquiry page, **Change status** moves it through *New → In Progress → Proposal Generated → Sent to Agent → Revision Requested → Approved → Booking Confirmed* (or *Cancelled*). Every change is recorded in **Status history** with who, when and an optional note.
 
 Internal notes and comments are for YANA staff only.
+
+## Destination inventory and suppliers
+
+Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation) and **Suppliers**, everyone can search and view. **Only administrators** can add, edit, deactivate or reactivate.
+
+- **Adding destinations needs no technical help.** Add a country, then its cities (with coordinates for routes and maps), then attractions, hotels and restaurants in those cities.
+- **Yes / No / Unknown**: facts like breakfast, parking, child suitability and dietary options start as *Unknown*. Only choose *Yes* once it's confirmed with the supplier. A Jain filter shows only restaurants where Jain food is confirmed.
+- **Prices** are labelled *estimated* until you tick "verified with supplier".
+- **Hotels**: open a hotel to add room types (base price per room per night) and seasonal rates.
+- **DEMO records** are fictional examples marked with a purple badge. Replace them with real supplier data, or deactivate them, before using them in proposals.
+- **Deactivate** instead of deleting: the record stays on file (and in existing itineraries) but isn't offered for new ones.

@@ -15,6 +15,14 @@ describe("visibleNavigation", () => {
     expect(visibleNavigation(undefined).map((i) => i.label)).not.toContain("Administration");
   });
 
+  it("shows the destination inventory pages and suppliers", () => {
+    const visible = visibleNavigation("planner");
+    expect(visible.find((i) => i.label === "Destination Inventory")?.children?.map((c) => c.label)).toEqual([
+      "Countries", "Cities", "Sightseeing", "Hotels", "Restaurants", "Transportation",
+    ]);
+    expect(visible.map((i) => i.label)).toContain("Suppliers");
+  });
+
   it("shows every CRM page", () => {
     const crm = visibleNavigation("planner").find((i) => i.label === "CRM");
     expect(crm?.children?.map((c) => c.label)).toEqual(["Travel Agents", "Customers", "Enquiries"]);

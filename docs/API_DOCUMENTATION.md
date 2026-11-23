@@ -100,5 +100,25 @@ List endpoints return `{items, total, page, page_size}` and accept `page` (from 
 | PUT | `/enquiries/{id}` | Update (reference and status unchanged) |
 | POST | `/enquiries/{id}/status` | `{status, note?}`. Recorded in history; 409 if unchanged |
 
+## Inventory (Phase 2)
+
+Read: any signed-in user. Create/update/status: **admin only** (403 otherwise).
+
+| Resource | Path | Filters (besides `q`, `active`, `page`, `page_size`) |
+|---|---|---|
+| Countries | `/inventory/countries` | `region` |
+| Cities | `/inventory/cities` | `country_id` |
+| Suppliers | `/inventory/suppliers` | `supplier_type`, `country_id` |
+| Attractions | `/inventory/attractions` | `city_id`, `country_id`, `category`, `child_friendly=true` |
+| Hotels | `/inventory/hotels` | `city_id`, `country_id`, `star_rating` |
+| Restaurants | `/inventory/restaurants` | `city_id`, `country_id`, `vegetarian`/`jain`/`halal`/`vegan` `=true` (verified only) |
+| Vehicles | `/inventory/vehicles` | `category_id`, `supplier_id` |
+
+Each resource supports `GET /` (paged list), `GET /{id}`, `POST /`, `PUT /{id}`, `PATCH /{id}/status` `{is_active}`. Lists include `primary_image_url` when images exist. Duplicates return `409 duplicate`; unknown references `400 invalid_reference`; bad filter values `422 invalid_filter`.
+
+Hotel extras: `POST|PUT|DELETE /inventory/hotels/{id}/room-types[/{room_type_id}]` and `/inventory/hotels/{id}/rates[/{rate_id}]` (a rate must reference a room type of the same hotel; deleting a room type deletes its rates). Each returns the full hotel.
+
+Also: `GET /inventory/options` (vocabularies for forms: categories, interest tags, facilities, weekdays…) and `GET /inventory/vehicle-categories`.
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 

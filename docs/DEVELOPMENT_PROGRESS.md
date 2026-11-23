@@ -4,13 +4,35 @@
 |---|---|---|
 | 0 | Project foundation | ✅ Complete (2026-11-23) |
 | 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
-| 2 | Destination inventory & images | ⏳ Next |
+| 2 | Destination inventory & images | 🔨 In progress (2a, 2b, 2d done; 2c images next) |
 | 3 | Customer requirement capture | Planned |
 | 4 | Itinerary engine | Planned |
 | 5 | Visual itinerary builder | Planned |
 | 6 | PDF designer | Planned |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
+
+---
+
+## Phase 2 – Destination inventory & images (in progress)
+
+### 2a · Inventory data model & API (done)
+- Migration `0003`: countries, cities, suppliers, attractions, hotels with room types and seasonal rates, restaurants, vehicle categories (7 PRD categories seeded) and vehicles with operating countries, media and media links.
+- One declarative CRUD engine for every inventory type: search, filters, pagination, reference checks, duplicate detection, activate/deactivate. Planners read; admins write.
+- Business rules: prices unverified by default ("estimated"); restaurant dietary flags are NULL = unknown and filters only return verified Yes; vocabularies validated.
+
+### 2b · Inventory screens (done)
+- Config-driven list, detail and form for Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation and Suppliers (`features/inventory/resource-config.tsx`). Adding a field is a config change.
+- Hotels: room types and seasonal rates with add/edit/delete.
+- Yes/No/Unknown inputs for facts that must be verified; DEMO badges and banner; estimated/verified price labels; OpenStreetMap links for coordinates.
+- Verified in headless Edge: an admin created a hotel through the UI (validation messages, save, detail page, room type with estimated price), with zero page errors.
+
+### 2d · Demo inventory (done, pulled forward for testing)
+- `python -m app.cli seed-demo` loads 8 countries, 26 cities, 30 real attractions and fictional DEMO hotels (16), restaurants (10), suppliers (4) and vehicles (5). It refuses to run if any country exists, so it never overwrites real data.
+- No invented opening hours or ticket prices for real attractions; all demo prices are unverified (test enforced).
+
+### Next: 2c · Image library
+Upload/validate/resize images, primary image, reorder, replace, delete, reuse across records, illustrative flag.
 
 ---
 
