@@ -26,24 +26,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = me.data ?? null;
   const error = me.error instanceof ApiError && me.error.status !== 401 ? me.error : null;
 
+  // Drop every cached query EXCEPT the session one. (queryClient.clear() would also
+  // remove the "me" query that this provider is subscribed to, so the new session
+  // would never reach the UI until a page refresh.)
+  const clearOtherData = useCallback(
+    () => queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== ME_QUERY_KEY[0] }),
+    [queryClient],
+  );
+
   const login = useCallback(
     async (email: string, password: string) => {
       const signedIn = await authApi.login(email, password);
-      queryClient.clear();
+      clearOtherData();
       queryClient.setQueryData(ME_QUERY_KEY, signedIn);
       return signedIn;
     },
-    [queryClient],
+    [queryClient, clearOtherData],
   );
 
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } finally {
-      queryClient.clear();
+      clearOtherData();
       queryClient.setQueryData(ME_QUERY_KEY, null);
     }
-  }, [queryClient]);
+  }, [queryClient, clearOtherData]);
 
   const hasRole = useCallback((...roles: RoleCode[]) => !!user && roles.includes(user.role.code), [user]);
 

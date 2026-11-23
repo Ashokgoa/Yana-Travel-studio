@@ -38,6 +38,7 @@ export function LoginForm() {
     setFormError(null);
     try {
       await login(values.email, values.password);
+      router.replace(safeNext(params.get("next")));
     } catch (e) {
       setFormError(e instanceof ApiError ? e.message : "Sign in failed. Please try again.");
     }
