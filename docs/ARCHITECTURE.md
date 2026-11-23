@@ -3,7 +3,10 @@
 Modular monolith: one FastAPI backend and one Next.js frontend, talking REST/JSON. No microservices.
 
 ```
-Browser ──► Next.js (localhost:3000) ──REST──► FastAPI (localhost:8000/api/v1)
+Browser (this laptop or another machine on the LAN)
+   │  http://<host>:3000            pages + /api/v1/* (same origin)
+   ▼
+Next.js (port 3000) ──rewrite /api/v1/*──► FastAPI (127.0.0.1:8000/api/v1, never exposed)
                                                   │
                      api/ (routers: HTTP only, no business logic)
                                                   │
@@ -54,7 +57,7 @@ No itinerary, pricing or route logic runs in the frontend.
 
 ## Configuration
 
-Backend: `.env` at project root (see `.env.example`). Relative paths resolve against the project root. Frontend: `frontend/.env.local` → `NEXT_PUBLIC_API_BASE_URL`.
+Backend: `.env` at project root (see `.env.example`). Relative paths resolve against the project root. Frontend: `frontend/.env.local` → `BACKEND_URL` (server-side; where `/api/v1` is forwarded, default `http://127.0.0.1:8000`).
 
 ## Data locations
 

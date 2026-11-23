@@ -52,3 +52,6 @@ Native selects work directly with react-hook-form, are accessible and keyboard-f
 
 ### TD-017 · Next 16: auth boundary inside Suspense; pages set `instant = false`
 `RequireAuth` uses `usePathname`, which Next 16 requires inside `<Suspense>` for prerendering. Authenticated pages wait for the browser-side session check, so each page in `app/(app)` exports `instant = false`. A layout-level setting did not silence the per-page dev validation.
+
+### TD-018 · Same-origin API through a Next.js rewrite; LAN sharing on one port
+The browser always calls `/api/v1/*` on the address it loaded the app from, and `next.config.ts` rewrites that to `BACKEND_URL` (default `http://127.0.0.1:8000`). Benefits: colleagues on the network need only port 3000; the backend never listens on the network; the session cookie is same-origin, so it works by IP address without CORS or SameSite issues. `NEXT_PUBLIC_API_BASE_URL` was removed. Shared mode (`scripts/start-shared.ps1`) uses the production server (`next start --hostname 0.0.0.0`), because the dev server blocks other hostnames and uses far more memory. The firewall rule covers Domain and Private profiles only. Plain HTTP is acceptable only on trusted networks; internet exposure requires HTTPS (cloud phase).

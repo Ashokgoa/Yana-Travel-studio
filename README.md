@@ -41,8 +41,24 @@ Or separately: `scripts\start-backend.ps1` and `scripts\start-frontend.ps1`.
 | What | URL |
 |---|---|
 | App | http://localhost:3000 |
-| API docs (Swagger) | http://localhost:8000/docs |
-| Health check | http://localhost:8000/api/v1/health |
+| API docs (Swagger, this laptop only) | http://localhost:8000/docs |
+| Health check | http://localhost:3000/api/v1/health |
+
+## Share with other computers on your network
+
+`start.ps1` is for working on this laptop only. To let colleagues on the **same network** (office LAN or Wi‑Fi) use the app:
+
+1. **Once, as Administrator**, allow the port through Windows Firewall:
+   right-click PowerShell → *Run as administrator* →
+   `powershell -ExecutionPolicy Bypass -File scripts\allow-firewall.ps1`
+2. Make sure Windows treats the network as **Private** (or Domain): *Settings → Network & internet → Wi‑Fi/Ethernet → your network → Network profile type: Private*. Windows blocks incoming connections on **Public** networks.
+3. Start in shared mode:
+   `powershell -ExecutionPolicy Bypass -File scripts\start-shared.ps1`
+   It prints the address to give colleagues, e.g. `http://192.168.1.25:3000`.
+
+How it works: other machines only talk to port 3000. The Next.js server forwards `/api/v1/*` to the backend, which stays private on `127.0.0.1:8000`.
+
+> **Security:** traffic is plain HTTP, so passwords and data cross the network unencrypted. Use shared mode only on trusted networks, give every person their own account, and use strong passwords. Internet access (outside your network) needs a proper HTTPS deployment; see `docs/DEVELOPMENT_PLAN.md`. On a company-managed laptop, IT policy may block incoming connections regardless of these settings.
 
 ## Test
 

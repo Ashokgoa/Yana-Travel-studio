@@ -1,7 +1,10 @@
 import type { ApiErrorBody, HealthResponse } from "@/types/api";
 
-/** Backend base URL; configured via NEXT_PUBLIC_API_BASE_URL (see .env.example). */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+/**
+ * Same-origin path: the Next server proxies /api/v1/* to the backend (see
+ * next.config.ts). Works from this laptop and from other machines alike.
+ */
+export const API_BASE_URL = "/api/v1";
 
 export class ApiError extends Error {
   constructor(
@@ -34,7 +37,12 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
-    throw new ApiError("Cannot reach the YANA backend. Is it running on port 8000?", 0);
+    throw new ApiError("Cannot reach YANA Travel Studio. Check your network connection.", 0);
+  }
+  if (response.status === 500 && !response.headers.get("content-type")?.includes("application/json")) {
+    // Our backend always answers with JSON; a non-JSON 500 comes from the Next
+    // proxy when the backend itself is not running.
+    throw new ApiError("The YANA backend is not running. Start it with scripts\\start.ps1.", 503);
   }
   if (!response.ok) {
     const body = (await response.json().catch(() => undefined)) as ApiErrorBody | undefined;
