@@ -1,0 +1,33 @@
+# --- Secrets & local config ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Local data (never commit customer data, generated PDFs or image libraries) ---
+database/*.db
+database/*.db-*
+database/backups/
+uploads/**
+!uploads/**/
+!uploads/**/.gitkeep
+exports/**
+!exports/**/
+!exports/**/.gitkeep
+
+# --- Node (frontend has its own .gitignore too) ---
+node_modules/
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+*.log
