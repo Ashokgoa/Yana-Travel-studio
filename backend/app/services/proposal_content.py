@@ -64,6 +64,7 @@ class ProposalDocument:
     map_svg: str
     cover_image: str | None
     curated_line: str
+    cover_photo: str | None  # explicitly chosen cover photo (shown on every template)
     logos: list[str]
     contact_lines: list[str]
     days: list[DayBlock]
@@ -109,6 +110,16 @@ def flag_data_uri(iso: str | None) -> str | None:
     if not path.is_file():
         return None
     return "data:image/svg+xml;base64," + base64.b64encode(path.read_bytes()).decode()
+
+
+def parse_markup(text: str) -> list[Segment]:
+    """'Visit **Zaanse Schans** by coach' -> [("Visit ", False), ("Zaanse Schans", True), (" by coach", False)]."""
+    parts = text.split("**")
+    return [(part, i % 2 == 1) for i, part in enumerate(parts) if part]
+
+
+def to_markup(segments: list[Segment]) -> str:
+    return "".join(f"**{t}**" if bold else t for t, bold in segments)
 
 
 def _first_sentence(text: str | None, limit: int = 220) -> str | None:
@@ -250,15 +261,22 @@ class ProposalBuilder:
         primary = settings.primary_color or primary
         accent = settings.accent_color or accent
 
-        # Route: every city in day order (includes pass-through sightseeing cities).
+        # Route: overnight cities and cities visited on the way (Brussels between Amsterdam and Paris).
+        # Day excursions from a base (Lucerne from Zurich) are not route stops; their countries still count.
         stops: list[City] = []
+        excursion_cities: list[City] = []
+        prev_overnight = None
         for d in v.days:
-            for cid in (d.city_id, d.overnight_city_id):
+            excursion = bool(d.overnight_city_id and d.overnight_city_id == prev_overnight and d.city_id != d.overnight_city_id)
+            for cid in ((d.overnight_city_id,) if excursion else (d.city_id, d.overnight_city_id)):
                 c = cities.get(cid) if cid else None
                 if c and (not stops or stops[-1].id != c.id):
                     stops.append(c)
+            if excursion and d.city_id in cities:
+                excursion_cities.append(cities[d.city_id])
+            prev_overnight = d.overnight_city_id or prev_overnight
         countries: list[tuple[str, str]] = []
-        for c in stops:
+        for c in stops + excursion_cities:
             if (c.country.iso_code, c.country.name) not in countries:
                 countries.append((c.country.iso_code, c.country.name))
         has_arrival = any(a.activity_type == "arrival" for a in v.days[0].activities) if v.days else False
@@ -364,13 +382,16 @@ class ProposalBuilder:
         exclusions = settings.exclusions if settings.exclusions is not None else list(branding.default_exclusions)
         terms_text = settings.terms if settings.terms is not None else branding.default_terms
 
-        cover_image = next((d.image for d in days if d.image), None)
+        cover_photo = None
+        if settings.cover_image:
+            cover_photo = self.images.data_uri(self.db.get(Media, settings.cover_image), 1800)
+        cover_image = cover_photo or next((d.image for d in days if d.image), None)
         version_label = f"Version {v.version_number} · {v.label}"
         return ProposalDocument(
             template=settings.template, primary=primary, accent=accent,
             sections=[s.key for s in settings.sections if s.enabled],
             title=title, subtitle=subtitle, intro=intro, highlights=highlights, route_text=route_text, map_svg=map_svg,
-            cover_image=cover_image, curated_line=curated, logos=logos, contact_lines=contact,
+            cover_image=cover_image, cover_photo=cover_photo, curated_line=curated, logos=logos, contact_lines=contact,
             days=days, hotels=hotel_rows, summary=summary, price=price,
             inclusions=inclusions, exclusions=exclusions, terms=[p.strip() for p in terms_text.splitlines() if p.strip()],
             closing=settings.closing or branding.default_closing,
@@ -489,9 +510,22 @@ class ProposalBuilder:
                     image = self.images.data_uri(lst[0], 1400)
                     break
 
-        return DayBlock(number=d.day_number, date_text=d.date.strftime("%A, ") + _fmt_date(d.date), heading=d.title,
-                        subtitle=subtitle if subtitle and subtitle != d.title else None, flags=flags, image=image,
-                        bullets=bullets, meals_line=meals_line, note=d.description)
+        block = DayBlock(number=d.day_number, date_text=d.date.strftime("%A, ") + _fmt_date(d.date), heading=d.title,
+                         subtitle=subtitle if subtitle and subtitle != d.title else None, flags=flags, image=image,
+                         bullets=bullets, meals_line=meals_line, note=d.description)
+        t = settings.day_texts.get(str(d.day_number))
+        if t:
+            if t.heading is not None:
+                block.heading = t.heading
+            if t.subtitle is not None:
+                block.subtitle = t.subtitle or None
+            if t.bullets is not None:
+                block.bullets = [parse_markup(line) for line in t.bullets]
+            if t.meals is not None:
+                block.meals_line = t.meals
+            if t.note is not None:
+                block.note = t.note or None
+        return block
 
     def _activity(self, a, d, ctx, hotel, transports, settings) -> list[Segment]:
         cities = ctx["cities"]

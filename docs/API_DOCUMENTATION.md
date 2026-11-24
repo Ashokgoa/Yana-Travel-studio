@@ -183,6 +183,15 @@ Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working 
 
 Every response re-runs the live checks and cost estimate.
 
+### Day-by-day planning (Phase 8d)
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/enquiries/{id}/itineraries/blank` `{title?, start_date?, days?, city_id, vehicle_id?}` | New *Day by day* itinerary (draft, editable); defaults from the requirements |
+| PATCH | `/itineraries/{id}/days/{n}` `{title?, description?, city_id?, overnight_city_id?}` | Also changes the day's city / overnight city; stays, legs and check-in/out follow |
+
+PDF settings now accept `day_texts` (`{"5": {heading, subtitle, bullets[], meals, note}}`, `**bold**` in bullets) and `cover_image` (media id). Designer options include `defaults.days` (automatic wording per day).
+
 ### Supplier prices (Phase 8c)
 
 | Method | Path | Description |

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query, status
 from app.api.deps import DB, CurrentUser, Pagination
 from app.schemas.common import Page
 from app.schemas.itinerary import (
-    ActivityCreate, ActivityMove, ActivityUpdate, DayUpdate, GenerateRequest, HotelReplace, ItineraryDetail,
+    ActivityCreate, ActivityMove, ActivityUpdate, BlankItineraryIn, DayUpdate, GenerateRequest, HotelReplace, ItineraryDetail,
     ItinerarySummary, LegModeUpdate, MealUpdate, SaveVersionRequest, Strategy, VehicleUpdate, VersionDiff, VersionInfo,
 )
 from app.services import itinerary_presenter as present
@@ -24,6 +24,13 @@ router = APIRouter(tags=["Itineraries"])
 def generate(enquiry_id: int, db: DB, user: CurrentUser, body: GenerateRequest | None = None):
     created = ItineraryService(db).generate(enquiry_id, user, (body or GenerateRequest()).strategies)
     return present.summaries(db, created)
+
+
+@router.post("/enquiries/{enquiry_id}/itineraries/blank", response_model=ItineraryDetail, status_code=status.HTTP_201_CREATED,
+             summary="Start an itinerary by hand (day by day), ready to edit in the builder")
+def create_blank(enquiry_id: int, body: BlankItineraryIn, db: DB, user: CurrentUser):
+    it = ItineraryEditor(db, user).create_blank(enquiry_id, body.title, body.start_date, body.days, body.city_id, body.vehicle_id)
+    return present.detail(db, it)
 
 
 @router.get("/enquiries/{enquiry_id}/itineraries", response_model=list[ItinerarySummary],
@@ -111,9 +118,10 @@ def remove_day(itinerary_id: int, day_number: int, db: DB, user: CurrentUser):
     return _fresh(db, itinerary_id)
 
 
-@router.patch("/itineraries/{itinerary_id}/days/{day_number}", response_model=ItineraryDetail, tags=edit_tag, summary="Edit a day's title/description")
+@router.patch("/itineraries/{itinerary_id}/days/{day_number}", response_model=ItineraryDetail, tags=edit_tag, summary="Edit a day: title, description, city and overnight city")
 def update_day(itinerary_id: int, day_number: int, body: DayUpdate, db: DB, user: CurrentUser):
-    ItineraryEditor(db, user).update_day(itinerary_id, day_number, body.title, body.description)
+    ItineraryEditor(db, user).update_day(itinerary_id, day_number, body.title, body.description, body.model_fields_set,
+                                         body.city_id, body.overnight_city_id)
     return _fresh(db, itinerary_id)
 
 

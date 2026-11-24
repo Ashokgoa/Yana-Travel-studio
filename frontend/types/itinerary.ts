@@ -1,5 +1,5 @@
 // Mirrors backend/app/schemas/itinerary.py
-export type Strategy = "classic" | "scenic" | "premium";
+export type Strategy = "classic" | "scenic" | "premium" | "custom";
 
 export type RouteStop = { city_id: number; city: string; country: string; iso_code: string; nights: number; lat: number | null; lng: number | null };
 export type HotelRef = { id: number; name: string; stars: number | null; is_demo: boolean; image_url: string | null };
@@ -45,7 +45,7 @@ export type Activity = {
   image_url: string | null;
 };
 export type Meal = { id: number; meal: string; arrangement: string; restaurant_id: number | null; restaurant_name: string | null; cuisine: string | null; note: string | null };
-export type Day = { id: number; day_number: number; date: string; city_id: number; city: string; overnight_city: string | null; title: string; description: string | null; activities: Activity[]; meals: Meal[] };
+export type Day = { id: number; day_number: number; date: string; city_id: number; city: string; overnight_city: string | null; overnight_city_id: number | null; title: string; description: string | null; activities: Activity[]; meals: Meal[] };
 export type Stay = {
   id: number; city_id: number; city: string; check_in_day: number; nights: number; hotel: HotelRef | null;
   rooms: { room_type_id: number | null; label: string; count: number; price: string | null }[];

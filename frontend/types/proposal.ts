@@ -18,9 +18,15 @@ export type ProposalSettings = {
   price_note: string | null;
   /** Day number (as text) -> media id; 0 hides the photo. */
   day_images: Record<string, number>;
+  /** Day number (as text) -> PDF wording; null fields = automatic. Use **bold**. */
+  day_texts: Record<string, DayText>;
+  cover_image: number | null;
   primary_color: string | null;
   accent_color: string | null;
 };
+
+export type DayText = { heading: string | null; subtitle: string | null; bullets: string[] | null; meals: string | null; note: string | null };
+export type AutoDayText = { day_number: number; heading: string; subtitle: string; bullets: string[]; meals: string; note: string };
 
 export type ImageChoice = { media_id: number; label: string; kind: "attraction" | "hotel" | "city"; url: string };
 
@@ -31,7 +37,7 @@ export type ProposalOptions = {
   /** Internal only: never shown in the PDF. */
   internal_estimate_per_person: string | null;
   currency: string;
-  defaults: { title: string; intro: string; closing: string; inclusions: string[]; exclusions: string[]; terms: string };
+  defaults: { title: string; intro: string; closing: string; inclusions: string[]; exclusions: string[]; terms: string; days: AutoDayText[] };
   version_number: number;
   version_label: string;
   version_is_locked: boolean;

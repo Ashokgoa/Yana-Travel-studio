@@ -93,6 +93,7 @@ class DayOut(BaseModel):
     city_id: int
     city: str
     overnight_city: str | None
+    overnight_city_id: int | None = None
     title: str
     description: str | None
     activities: list[ActivityOut]
@@ -157,6 +158,19 @@ class SaveVersionRequest(BaseModel):
 class DayUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
+    # Day-by-day planning: where the day is spent and where the group sleeps (omit to keep; departure day has no overnight).
+    city_id: int | None = None
+    overnight_city_id: int | None = None
+
+
+class BlankItineraryIn(BaseModel):
+    """Start an itinerary by hand: N days in a starting city, then plan each day in the builder."""
+
+    title: str | None = Field(default=None, max_length=200)
+    start_date: date | None = None  # default: the customer's arrival date
+    days: int | None = Field(default=None, ge=2, le=60)  # default: from the arrival and departure dates, else 7
+    city_id: int
+    vehicle_id: int | None = None
 
 
 TimeSlot = Literal["morning", "afternoon", "full_day", "evening"]

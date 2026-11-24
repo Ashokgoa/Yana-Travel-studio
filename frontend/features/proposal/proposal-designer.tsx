@@ -14,7 +14,8 @@ import { ApiError } from "@/services/api";
 import { itinerariesApi } from "@/services/itineraries";
 import { proposalsApi } from "@/services/proposals";
 import type { ProposalSettings } from "@/types/proposal";
-import { ListsPanel, Panel, PhotosPanel, PricePanel, SectionsPanel, TemplatePanel, TextPanel } from "./designer-panels";
+import { DayTextsPanel, PhotosPanel } from "./day-panels";
+import { ListsPanel, Panel, PricePanel, SectionsPanel, TemplatePanel, TextPanel } from "./designer-panels";
 
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value);
@@ -132,6 +133,7 @@ export function ProposalDesigner({ id, version }: { id: number; version?: number
           <PricePanel s={draft} options={opt} onChange={change} pricingHref={`/itineraries/${id}/pricing${version ? `?version=${version}` : ""}`} />
           <TextPanel s={draft} options={opt} onChange={change} />
           <PhotosPanel s={draft} options={opt} onChange={change} />
+          <DayTextsPanel s={draft} options={opt} onChange={change} />
           <ListsPanel s={draft} options={opt} onChange={change} />
           <Panel title="PDFs created">
             {history.data?.length ? (

@@ -8,6 +8,7 @@ import { Columns3, Loader2, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CreateItineraryButton } from "@/features/itinerary-builder/create-itinerary";
 import { FromTemplateButton } from "@/features/templates/template-dialogs";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/common/states";
@@ -41,7 +42,7 @@ function MissingRequirements({ enquiryId, missing, exists }: { enquiryId: number
   const first = missing[0];
   return (
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="status">
-      <p className="font-medium">To generate itineraries, the customer requirements still need:</p>
+      <p className="font-medium">Automatic suggestions need these customer requirements (you can still create an itinerary by hand):</p>
       {exists && missing.length ? (
         <ul className="mt-1 list-disc pl-5">{missing.map((m) => <li key={m}>{m}</li>)}</ul>
       ) : (
@@ -65,10 +66,10 @@ export function EnquiryItineraries({ enquiryId }: { enquiryId: number }) {
   const ready = req.data?.exists && req.data.is_complete;
 
   const generateButton = (
-    <Button onClick={() => (latest.length ? setConfirm(true) : generate.mutate())} disabled={!ready || generate.isPending}
-      title={!ready ? "Complete the customer requirements first" : undefined}>
+    <Button variant="outline" onClick={() => (latest.length ? setConfirm(true) : generate.mutate())} disabled={!ready || generate.isPending}
+      title={!ready ? "Automatic suggestions need complete customer requirements" : "Let the app propose Classic, Scenic and Premium alternatives"}>
       {generate.isPending ? <Loader2 className="animate-spin" aria-hidden /> : <Sparkles aria-hidden />}
-      {latest.length ? "Regenerate" : "Generate 3 alternatives"}
+      Suggest itineraries
     </Button>
   );
 
@@ -78,15 +79,16 @@ export function EnquiryItineraries({ enquiryId }: { enquiryId: number }) {
         <div>
           <CardTitle>Itineraries</CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Built from your inventory and the customer requirements. Costs are estimates; availability is not verified.
+            Plan day by day with <strong>Create itinerary</strong>, start <strong>from a template</strong>, or let the app <strong>suggest</strong> three alternatives to edit.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {latest.length > 1 && (
             <Link href={`/crm/enquiries/${enquiryId}/itineraries`} className={buttonVariants({ variant: "outline" })}>
               <Columns3 aria-hidden /> Compare
             </Link>
           )}
+          <CreateItineraryButton enquiryId={enquiryId} />
           <FromTemplateButton enquiryId={enquiryId} />
           {generateButton}
         </div>
@@ -97,17 +99,16 @@ export function EnquiryItineraries({ enquiryId }: { enquiryId: number }) {
         ) : list.isError ? (
           <ErrorState message={list.error.message} onRetry={() => list.refetch()} />
         ) : latest.length === 0 ? (
-          ready ? (
-            <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">Ready: generate Classic, Scenic and Premium alternatives in one click.</p>
-          ) : (
-            <MissingRequirements enquiryId={enquiryId} missing={req.data?.missing ?? []} exists={!!req.data?.exists} />
-          )
+          <div className="space-y-3">
+            <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              No itinerary yet. Click <strong>Create itinerary</strong> to plan it day by day: cities, overnight stays, sightseeing, restaurants and hotels.
+            </p>
+            {!ready && <MissingRequirements enquiryId={enquiryId} missing={req.data?.missing ?? []} exists={!!req.data?.exists} />}
+          </div>
         ) : (
           <>
-            {!ready && <div className="mb-4"><MissingRequirements enquiryId={enquiryId} missing={req.data?.missing ?? []} exists={!!req.data?.exists} /></div>}
             {generate.isPending && <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground" role="status"><Loader2 className="size-4 animate-spin" aria-hidden /> Generating…</p>}
-            <div className="grid gap-4 lg:grid-cols-3">{latest.map((it) => <ItineraryCard key={it.id} it={it} />)}</div>
-            {latestBatch > 1 && <p className="mt-3 text-xs text-muted-foreground">Showing generation #{latestBatch}. Earlier generations stay under Itinerary Builder → Saved Itineraries.</p>}
+            <div className="grid gap-4 lg:grid-cols-3">{(list.data ?? []).map((it) => <ItineraryCard key={it.id} it={it} />)}</div>
           </>
         )}
       </CardContent>

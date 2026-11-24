@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ImageOff, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowUp, Sparkles } from "lucide-react";
 import { Segmented, Toggle } from "@/components/common/choice-controls";
 import { FormField, NativeSelect, controlClass } from "@/components/common/form-controls";
 import { Button } from "@/components/ui/button";
@@ -176,43 +176,7 @@ export function ListsPanel({ s, options, onChange }: { s: ProposalSettings; opti
   );
 }
 
-export function PhotosPanel({ s, options, onChange }: { s: ProposalSettings; options: ProposalOptions; onChange: Change }) {
-  const set = (day: number, value: number | null) => {
-    const next = { ...s.day_images };
-    if (value === null) delete next[String(day)];
-    else next[String(day)] = value;
-    onChange({ day_images: next });
-  };
-  const anyPhotos = options.day_images.some((d) => d.choices.length);
-  return (
-    <Panel title="Day photos" description={anyPhotos ? "Automatic picks the first sightseeing photo, then the hotel, then the city." : "No photos yet. Add photos to sightseeing, hotels or cities in Destination Inventory and they appear here."}>
-      {anyPhotos && (
-        <ul className="space-y-3">
-          {options.day_images.map((d) => {
-            const current = s.day_images[String(d.day_number)];
-            return (
-              <li key={d.day_number}>
-                <p className="mb-1 text-xs font-medium">Day {d.day_number} · {d.title}</p>
-                <div role="radiogroup" aria-label={`Photo for day ${d.day_number}`} className="flex flex-wrap gap-1.5">
-                  <PhotoChoice on={current === undefined} onClick={() => set(d.day_number, null)} label="Automatic"><Sparkles className="size-4" aria-hidden /></PhotoChoice>
-                  <PhotoChoice on={current === 0} onClick={() => set(d.day_number, 0)} label="No photo"><ImageOff className="size-4" aria-hidden /></PhotoChoice>
-                  {d.choices.map((c) => (
-                    <PhotoChoice key={c.media_id} on={current === c.media_id} onClick={() => set(d.day_number, c.media_id)} label={c.label}>
-                      {/* eslint-disable-next-line @next/next/no-img-element -- authenticated API image */}
-                      <img src={c.url} alt="" className="size-full object-cover" />
-                    </PhotoChoice>
-                  ))}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Panel>
-  );
-}
-
-function PhotoChoice({ on, onClick, label, children }: { on: boolean; onClick: () => void; label: string; children: React.ReactNode }) {
+export function PhotoChoice({ on, onClick, label, children }: { on: boolean; onClick: () => void; label: string; children: React.ReactNode }) {
   return (
     <button type="button" role="radio" aria-checked={on} aria-label={label} title={label} onClick={onClick}
       className={cn("flex size-12 items-center justify-center overflow-hidden rounded-md border text-muted-foreground transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",

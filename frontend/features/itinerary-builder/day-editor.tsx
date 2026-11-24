@@ -119,6 +119,33 @@ function ActivityEditDialog({ it, activity, onClose, run }: { it: ItineraryDetai
   );
 }
 
+/** Day-by-day planning: the city of the day and where the group sleeps. Hotels and travel legs follow. */
+function DayCities({ it, day, isLast, run }: { it: ItineraryDetail; day: Day; isLast: boolean; run: Props["run"] }) {
+  const cities = useQuery({ queryKey: ["inventory", "cities", "list", { active: true, page_size: 100 }], queryFn: () => inventoryApi.list("cities", { active: true, page_size: 100 }), staleTime: 60_000 });
+  const options = (cities.data?.items ?? []).map((c) => ({ id: c.id, label: `${String(c.name)}${c.country ? ` (${String((c.country as { name: string }).name)})` : ""}` }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+  return (
+    <div className="mt-2 flex flex-wrap gap-3 text-xs">
+      <label className="flex items-center gap-1.5">
+        <span className="text-muted-foreground">Day in</span>
+        <NativeSelect aria-label={`City of day ${day.day_number}`} className="h-8 w-48 text-xs" value={day.city_id}
+          onChange={(e) => { const cityId = Number(e.target.value); run(() => itinerariesApi.updateDay(it.id, day.day_number, { city_id: cityId }), "City changed"); }}>
+          {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+        </NativeSelect>
+      </label>
+      {!isLast && (
+        <label className="flex items-center gap-1.5">
+          <span className="text-muted-foreground">Overnight in</span>
+          <NativeSelect aria-label={`Overnight city of day ${day.day_number}`} className="h-8 w-48 text-xs" value={day.overnight_city_id ?? ""}
+            onChange={(e) => { const cityId = Number(e.target.value); run(() => itinerariesApi.updateDay(it.id, day.day_number, { overnight_city_id: cityId }), "Overnight city changed"); }}>
+            {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+          </NativeSelect>
+        </label>
+      )}
+    </div>
+  );
+}
+
 export function DayEditor({ it, day, stay, editable, run, drag, setDrag, foodPreferences }: Props) {
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(day.title);
@@ -174,6 +201,7 @@ export function DayEditor({ it, day, stay, editable, run, drag, setDrag, foodPre
           ) : (
             <h3 className="font-heading text-xl font-semibold">{day.title}</h3>
           )}
+          {editable && !renaming && <DayCities it={it} day={day} isLast={isLast} run={run} />}
         </div>
         {editable && !renaming && (
           <div className="flex flex-wrap gap-1">

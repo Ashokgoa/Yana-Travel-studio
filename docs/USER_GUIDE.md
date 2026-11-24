@@ -57,6 +57,16 @@ After creating an enquiry you go straight to **Customer requirements** (also rea
 
 The **Readiness** panel lists anything still missing and any conflicts (for example more must-visit places than nights). The final **Review** step shows everything on one page.
 
+## Creating an itinerary day by day
+
+On an enquiry, click **Create itinerary** (or use *Itinerary Builder → Create Itinerary*). Give it a name, check the start date and number of days, and choose the first city. The builder opens straight away. For each day:
+- **Day in** is where the day is spent; **Overnight in** is where the group sleeps. Change "Day in" and the night moves with it; change "Overnight in" for a day trip (e.g. Day in Lucerne, Overnight in Paris). For a stop on the way (Brussels between Amsterdam and Paris), set Day in Brussels and Overnight in Paris.
+- Hotels, travel between cities, check-out and check-in update by themselves. Choose each hotel with **Replace** on the right.
+- Add sightseeing, free time or your own activities, and choose meals per day (hotel, a restaurant, own arrangement).
+- Then open **PDF** to design the proposal.
+
+**From a template** starts from a saved itinerary, such as the *European Grand Tour*. **Suggest itineraries** lets the app propose three alternatives you can then edit.
+
 ## Generating itineraries
 
 When the requirements are complete (Readiness shows *Ready for itinerary generation*), open the enquiry and click **Generate 3 alternatives**:
@@ -144,7 +154,8 @@ Open an itinerary and click **PDF proposal**, or click **PDF** in the builder. T
 - **Sections**: tick or untick a section, and use the arrows to change the order.
 - **Price**: the PDF shows the selling prices from **Pricing** (adult twin, single supplement, children). If the version hasn't been priced, it says *Price on request*. You can type an override price per person instead, plus a note such as "valid for June 2027". Costs and margins are never printed.
 - **Text**: the title, introduction and closing message are written automatically. Edit them for this proposal, or click *Use automatic text* to go back.
-- **Day photos**: per day, choose *Automatic* (first sightseeing photo, then the hotel, then the city), *No photo*, or a specific photo. Add photos in Destination Inventory first.
+- **Photos**: for the cover and each day choose *Automatic*, *No photo*, a photo of that day's sightseeing, hotel or city, **upload your own** (⊕), or pick one from the **image library**.
+- **Day-by-day text**: open a day to change its heading, subtitle, bullet points (one per line; `**double stars**` for bold), meals line and note. The preview updates as you type; the itinerary itself is not changed. *Back to the automatic text* undoes it for that day.
 - **Inclusions, exclusions and terms**: inclusions come from the itinerary (hotels, meals, transport, transfers, entrance tickets); exclusions and terms come from the YANA defaults. You can edit any of them, one item per line.
 - The **preview** updates as you change things. **Save settings** keeps your choices for this itinerary.
 - **Create PDF** makes the A4 PDF, downloads it (for example `YANA_Classic_Europe_Sharma_Family_V2.pdf`) and lists it under *PDFs created*. If you were editing a draft, it's first saved as a read-only version named "PDF proposal", so each PDF matches a saved version. The enquiry status changes to *Proposal generated*.

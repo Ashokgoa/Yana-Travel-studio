@@ -23,7 +23,9 @@ export const itinerariesApi = {
   addDayAfter: (id: number, day: number) => api.post<ItineraryDetail>(`${base(id)}/days/${day}/add-after`),
   duplicateDay: (id: number, day: number) => api.post<ItineraryDetail>(`${base(id)}/days/${day}/duplicate`),
   removeDay: (id: number, day: number) => api.delete<ItineraryDetail>(`${base(id)}/days/${day}`),
-  updateDay: (id: number, day: number, body: { title?: string; description?: string | null }) =>
+  createBlank: (enquiryId: number, body: { title?: string | null; start_date?: string | null; days?: number | null; city_id: number; vehicle_id?: number | null }) =>
+    api.post<ItineraryDetail>(`/enquiries/${enquiryId}/itineraries/blank`, body),
+  updateDay: (id: number, day: number, body: { title?: string; description?: string | null; city_id?: number; overnight_city_id?: number | null }) =>
     api.patch<ItineraryDetail>(`${base(id)}/days/${day}`, body),
   addActivity: (id: number, day: number, body: { time_slot: TimeSlot; attraction_id?: number; activity_type?: string; title?: string; description?: string; duration_min?: number }) =>
     api.post<ItineraryDetail>(`${base(id)}/days/${day}/activities`, body),

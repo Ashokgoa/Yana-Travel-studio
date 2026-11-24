@@ -16,7 +16,7 @@ Consistency
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from fastapi import status
@@ -174,12 +174,125 @@ class ItineraryEditor:
         self._renumber(v, days)
         self._rebuild(v)
 
-    def update_day(self, itinerary_id: int, day_number: int, title: str | None, description: str | None) -> None:
-        day = self._day(self.working(itinerary_id), day_number)
-        if title is not None:
+    def update_day(self, itinerary_id: int, day_number: int, title: str | None, description: str | None, fields: set[str] | None = None,
+                   city_id: int | None = None, overnight_city_id: int | None = None) -> None:
+        v = self.working(itinerary_id)
+        day = self._day(v, day_number)
+        fields = fields if fields is not None else {"title", "description"}
+        if "title" in fields and title is not None:
             day.title = title
-        day.description = description
+        if "description" in fields:
+            day.description = description
+        if {"city_id", "overnight_city_id"} & fields:
+            last = max(d.day_number for d in v.days)
+            # "Day in" moves the night too when both were the same city; "Overnight in" changes only the night.
+            together = day.overnight_city_id == day.city_id and day_number != last
+            if "city_id" in fields:
+                if city_id is None or self.db.get(City, city_id) is None:
+                    raise _error("Choose a city from Destination Inventory.", "invalid_reference")
+                old_name, new_name = self._city_name(day.city_id), self._city_name(city_id)
+                if "title" not in fields and day.title in (old_name, f"Arrival in {old_name}"):  # automatic titles follow the city
+                    day.title = day.title.replace(old_name, new_name)
+                day.city_id = city_id
+                if together and "overnight_city_id" not in fields:
+                    day.overnight_city_id = city_id
+            if "overnight_city_id" in fields:
+                if day_number == last:
+                    overnight_city_id = None  # the departure day has no overnight stay
+                elif overnight_city_id is None or self.db.get(City, overnight_city_id) is None:
+                    raise _error("Every night needs a city (except the departure day).", "invalid_reference")
+                day.overnight_city_id = overnight_city_id  # only the night: e.g. Lucerne by day, sleep in Paris
+            self._rebuild(v)
+            self._sync_moves(v)
         self.db.commit()
+
+    def _sync_moves(self, v: ItineraryVersion) -> None:
+        """Keep check-out, travel and check-in lines in step with the stays and legs after a city change."""
+        days = sorted(v.days, key=lambda d: d.day_number)
+        names = {self._city_name(c) for d in days for c in (d.city_id, d.overnight_city_id) if c}
+        for d in days:  # automatic titles (a city name, "A → B") follow the plan; planners' own titles are kept
+            legs = sorted((t for t in v.transports if t.day_number == d.day_number and t.kind == "intercity"), key=lambda t: t.sort_order)
+            parts = d.title.split(" → ")
+            if d.day_number not in (1, len(days)) and all(p in names for p in parts):
+                d.title = f"{self._city_name(legs[0].from_city_id)} → {self._city_name(legs[-1].to_city_id)}" if legs else self._city_name(d.city_id)
+        prev = None
+        for d in days:
+            for a in [a for a in d.activities if a.activity_type in ("check_in", "check_out", "transfer")]:
+                d.activities.remove(a)
+            front: list[ItineraryActivity] = []
+            moving = prev is not None and (d.overnight_city_id != prev)
+            if moving:
+                front.append(ItineraryActivity(time_slot="morning", activity_type="check_out", title=f"Check out in {self._city_name(prev)}"))
+            for t in sorted((t for t in v.transports if t.day_number == d.day_number and t.kind == "intercity"), key=lambda t: t.sort_order):
+                desc = f"About {t.distance_km} km, ~{(t.duration_min or 0) // 60} h {(t.duration_min or 0) % 60:02d} min (estimate)." if t.distance_km else None
+                front.append(ItineraryActivity(time_slot="morning", activity_type="transfer", title=f"Travel to {self._city_name(t.to_city_id)}", description=desc))
+            back: list[ItineraryActivity] = []
+            if d.overnight_city_id is not None and d.overnight_city_id != prev:
+                back.append(ItineraryActivity(time_slot="afternoon", activity_type="check_in", title=f"Hotel check-in in {self._city_name(d.overnight_city_id)}"))
+            rest = sorted(d.activities, key=lambda a: a.sort_order)
+            arrival = [a for a in rest if a.activity_type == "arrival"]
+            departure = [a for a in rest if a.activity_type == "departure"]
+            middle = [a for a in rest if a.activity_type not in ("arrival", "departure")]
+            ordered = arrival + front + middle + back + departure
+            for a in list(d.activities):
+                d.activities.remove(a)
+            for i, a in enumerate(ordered):
+                a.sort_order = i
+                d.activities.append(a)
+            if d.overnight_city_id is not None:
+                prev = d.overnight_city_id
+
+    def create_blank(self, enquiry_id: int, title: str | None, start_date, days: int | None, city_id: int, vehicle_id: int | None) -> Itinerary:
+        """A new itinerary to plan by hand: every night in the starting city until the planner changes the days."""
+        from app.models import Enquiry
+        from app.services.requirement_service import RequirementService
+
+        enquiry = self.db.get(Enquiry, enquiry_id)
+        if enquiry is None:
+            raise _error("Enquiry not found.", "not_found", status.HTTP_404_NOT_FOUND)
+        city = self.db.get(City, city_id)
+        if city is None:
+            raise _error("Choose a starting city from Destination Inventory.", "invalid_reference")
+        if vehicle_id is not None and self.db.get(Vehicle, vehicle_id) is None:
+            raise _error("Choose a vehicle from inventory.", "invalid_reference")
+        req = RequirementService(self.db).get(enquiry_id)
+        start = start_date or req.arrival_date or enquiry.travel_start_date or (date.today() + timedelta(days=30))
+        if days is None:
+            days = (req.departure_date - req.arrival_date).days + 1 if req.arrival_date and req.departure_date else 7
+        days = max(2, min(days, 60))
+        batch = (self.db.scalar(select(func.max(Itinerary.batch)).where(Itinerary.enquiry_id == enquiry_id)) or 0) + 1
+        it = Itinerary(enquiry_id=enquiry_id, kind="proposal", title=(title or f"{days}-day itinerary: {city.name}")[:200], strategy="custom",
+                       batch=batch, created_by_id=self.user.id)
+        self.db.add(it)
+        self.db.flush()
+        v = ItineraryVersion(itinerary_id=it.id, version_number=1, label="Draft", notes="Planned day by day", start_date=start,
+                             total_days=days, total_nights=days - 1, vehicle_id=vehicle_id, generation_report={}, is_locked=False,
+                             created_by_id=self.user.id)
+        for i in range(days):
+            last = i == days - 1
+            d = ItineraryDay(day_number=i + 1, date=start + timedelta(days=i), city_id=city.id, overnight_city_id=None if last else city.id,
+                             title=f"Arrival in {city.name}" if i == 0 else "Departure" if last else city.name)
+            if i == 0:
+                d.activities = [ItineraryActivity(sort_order=0, time_slot="morning", activity_type="arrival",
+                                                  title=f"Arrive at {req.arrival_airport or city.name}", description="Meet and greet; private transfer to the hotel.")]
+            elif last:
+                d.activities = [ItineraryActivity(sort_order=0, time_slot="morning", activity_type="departure",
+                                                  title=f"Transfer to {req.departure_airport or city.name}", description="End of services.")]
+            if i > 0:
+                d.meals = [ItineraryMeal(sort_order=0, meal="breakfast", arrangement="hotel")]
+            v.days.append(d)
+        v.transports = [
+            ItineraryTransport(day_number=1, sort_order=0, kind="airport_transfer", mode="coach", from_city_id=None, to_city_id=city.id,
+                               vehicle_id=vehicle_id, note=f"From {req.arrival_airport}" if req.arrival_airport else None),
+            ItineraryTransport(day_number=days, sort_order=1, kind="airport_transfer", mode="coach", from_city_id=city.id, to_city_id=None,
+                               vehicle_id=vehicle_id, note=f"To {req.departure_airport}" if req.departure_airport else None),
+        ]
+        self.db.add(v)
+        self.db.flush()
+        self._rebuild(v)
+        self._sync_moves(v)
+        self.db.commit()
+        return self.service.get(it.id)
 
     def _renumber(self, v: ItineraryVersion, ordered: list[ItineraryDay]) -> None:
         # Two passes avoid temporary clashes with the (version_id, day_number) unique constraint.
@@ -361,12 +474,15 @@ class ItineraryEditor:
         for d in days[1:]:
             here = d.overnight_city_id or d.city_id
             if here != prev_city and prev_city is not None and d.overnight_city_id is not None:
-                existing = next((t for t in old_legs if t.kind == "intercity" and t.from_city_id == prev_city and t.to_city_id == here), None)
-                if existing:
-                    new_legs.append(self._copy_leg(existing, day_number=d.day_number))
-                else:
-                    new_legs.append(self._new_leg(v, d.day_number, prev_city, here, mode))
-                d.city_id = here
+                # Sightseeing in a city on the way (e.g. Brussels between Amsterdam and Paris) keeps that city: two legs.
+                via = d.city_id if d.city_id not in (prev_city, here) and any(a.activity_type == "sightseeing" for a in d.activities) else None
+                for frm, to in ([(prev_city, via), (via, here)] if via else [(prev_city, here)]):
+                    existing = next((t for t in old_legs if t.kind == "intercity" and t.from_city_id == frm and t.to_city_id == to), None)
+                    if existing:
+                        new_legs.append(self._copy_leg(existing, day_number=d.day_number))
+                    else:
+                        new_legs.append(self._new_leg(v, d.day_number, frm, to, mode))
+                d.city_id = via or here
             if d.overnight_city_id is not None:
                 prev_city = d.overnight_city_id
         if departure:

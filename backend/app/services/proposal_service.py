@@ -24,7 +24,7 @@ from app.schemas.proposal import SECTION_LABELS, TEMPLATES, BrandingSettings, Pr
 from app.services.itinerary_checks import evaluate
 from app.services.itinerary_editor import ItineraryEditor
 from app.services.itinerary_service import ItineraryService
-from app.services.proposal_content import ProposalBuilder, default_title
+from app.services.proposal_content import ProposalBuilder, default_title, to_markup
 from app.services.proposal_render import PdfRenderer, get_pdf_renderer, render_html
 from app.services.storage import LocalFileStorage
 
@@ -91,7 +91,7 @@ class ProposalService:
         return data
 
     def _check_images(self, data: ProposalSettings) -> None:
-        ids = {m for m in data.day_images.values() if m}
+        ids = {m for m in data.day_images.values() if m} | ({data.cover_image} if data.cover_image else set())
         if ids and len(set(self.db.scalars(select(Media.id).where(Media.id.in_(ids))))) != len(ids):
             raise DomainError("One of the chosen photos no longer exists.", status.HTTP_400_BAD_REQUEST, "invalid_image")
 
@@ -99,7 +99,7 @@ class ProposalService:
         it = self.itineraries.get(itinerary_id)
         v = self.itineraries.current_version(it, version_number)
         ev = evaluate(self.db, v, it.enquiry_id)
-        auto = ProposalBuilder(self.db, with_images=False).build(it, v, ProposalSettings(), self.branding())
+        auto = ProposalBuilder(self.db, with_images=False).build(it, v, ProposalSettings(), self.branding())  # automatic texts only
         from app.services.pricing_service import PricingService
 
         cp = PricingService(self.db).customer_price(it, v)
@@ -114,7 +114,9 @@ class ProposalService:
             internal_estimate_per_person=str(ev.cost_per_person) if ev.cost_per_person else None,
             currency=ev.currency,
             defaults=dict(title=auto.title, intro=auto.intro, closing=auto.closing, inclusions=auto.inclusions,
-                          exclusions=auto.exclusions, terms="\n".join(auto.terms)),
+                          exclusions=auto.exclusions, terms="\n".join(auto.terms),
+                          days=[dict(day_number=d.number, heading=d.heading, subtitle=d.subtitle or "",
+                                     bullets=[to_markup(b) for b in d.bullets], meals=d.meals_line, note=d.note or "") for d in auto.days]),
             version_number=v.version_number, version_label=v.label, version_is_locked=v.is_locked, pricing=pricing,
         )
 

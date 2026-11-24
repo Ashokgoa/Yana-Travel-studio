@@ -87,7 +87,7 @@ def detail(db: Session, it: Itinerary, version_number: int | None = None) -> Iti
 
     days = [
         DayOut(
-            id=d.id, day_number=d.day_number, date=d.date, city_id=d.city_id, city=lk.city(d.city_id) or "", overnight_city=lk.city(d.overnight_city_id),
+            id=d.id, day_number=d.day_number, date=d.date, city_id=d.city_id, city=lk.city(d.city_id) or "", overnight_city=lk.city(d.overnight_city_id), overnight_city_id=d.overnight_city_id,
             title=d.title, description=d.description,
             activities=[ActivityOut(id=a.id, time_slot=a.time_slot, activity_type=a.activity_type, title=a.title, description=a.description,
                                     duration_min=a.duration_min, attraction_id=a.attraction_id,

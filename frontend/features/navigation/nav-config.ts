@@ -42,7 +42,7 @@ export const NAVIGATION: NavItem[] = [
     icon: Route,
     enabled: true,
     children: [
-      { label: "Create Itinerary", href: "/itineraries/new", enabled: false },
+      { label: "Create Itinerary", href: "/itineraries/new", enabled: true },
       { label: "Saved Itineraries", href: "/itineraries", enabled: true },
       { label: "Itinerary Templates", href: "/itineraries/templates", enabled: true },
       { label: "Compare Proposals", href: "/itineraries/compare", enabled: false },

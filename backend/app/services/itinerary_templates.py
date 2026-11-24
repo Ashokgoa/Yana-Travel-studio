@@ -9,6 +9,7 @@ comes from real, reviewed work.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import timedelta
 
 from fastapi import status
@@ -33,7 +34,7 @@ class TemplateService:
         src_it = self.itineraries.get(itinerary_id)
         src = self.itineraries.current_version(src_it, version_number)
         tpl = Itinerary(enquiry_id=None, kind="template", title=title.strip()[:200], strategy=src_it.strategy, status="template",
-                        batch=1, created_by_id=self.user.id)
+                        batch=1, created_by_id=self.user.id, proposal_settings=deepcopy(src_it.proposal_settings))
         self.db.add(tpl)
         self.db.flush()
         v = self.editor._clone(src, tpl, label="Template", notes=description or f"Saved from itinerary #{src_it.id}, version {src.version_number}", number=1)
@@ -63,7 +64,8 @@ class TemplateService:
         tpl = self._template(template_id)
         src = self.itineraries.current_version(tpl)
         batch = (self.db.scalar(select(func.max(Itinerary.batch)).where(Itinerary.enquiry_id == enquiry_id)) or 0) + 1
-        it = Itinerary(enquiry_id=enquiry_id, kind="proposal", title=tpl.title, strategy=tpl.strategy, batch=batch, created_by_id=self.user.id)
+        it = Itinerary(enquiry_id=enquiry_id, kind="proposal", title=tpl.title, strategy=tpl.strategy, batch=batch, created_by_id=self.user.id,
+                       proposal_settings=deepcopy(tpl.proposal_settings))  # the template's PDF texts and photos come along
         self.db.add(it)
         self.db.flush()
         v = self.editor._clone(src, it, label="Generated", notes=f"From template “{tpl.title}”", number=1)

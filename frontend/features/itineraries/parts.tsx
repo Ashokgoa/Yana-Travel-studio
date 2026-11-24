@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Landmark, Mountain, Gem, Route as RouteIcon } from "lucide-react";
+import { AlertTriangle, Landmark, Mountain, Gem, PencilRuler, Route as RouteIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ export const STRATEGY_META: Record<Strategy, { label: string; icon: typeof Landm
   classic: { label: "Classic", icon: Landmark, className: "bg-sky-50 text-sky-800 ring-sky-600/20", accent: "border-t-sky-500" },
   scenic: { label: "Scenic", icon: Mountain, className: "bg-emerald-50 text-emerald-800 ring-emerald-600/20", accent: "border-t-emerald-500" },
   premium: { label: "Premium", icon: Gem, className: "bg-amber-50 text-amber-800 ring-amber-600/25", accent: "border-t-brand-gold" },
+  custom: { label: "Day by day", icon: PencilRuler, className: "bg-violet-50 text-violet-800 ring-violet-600/20", accent: "border-t-violet-500" },
 };
 
 export function StrategyBadge({ strategy }: { strategy: Strategy }) {

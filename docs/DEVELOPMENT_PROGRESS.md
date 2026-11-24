@@ -14,6 +14,28 @@
 
 ---
 
+## Phase 8d – Day-by-day planning by hand, PDF text and photos, Grand Tour template (2026-11-24, from YANA's feedback)
+
+YANA feedback: the planner builds the itinerary day by day (city, sightseeing, photos, restaurants, hotels); the app may propose itineraries but must not impose them; then the itinerary is previewed and turned into a PDF with images and logo. The reference brochure should become a template, and the PDF wording should be editable with an immediate preview.
+- **Create itinerary** (enquiry page, and the *Create Itinerary* menu page): name, start date, number of days and first city (prefilled from the requirements). A *Day by day* draft opens straight in the builder (no generation, editable at once). *Suggest itineraries* (the engine) is now the secondary option, next to *From a template*.
+- **Builder: "Day in" and "Overnight in" pickers on every day.**
+  - Stays, hotels, travel legs, and the check-out / "Travel to …" / check-in lines follow automatically.
+  - "Day in" moves the night too when both were the same city; "Overnight in" changes only the night (so a day trip is "Day in Lucerne, Overnight in Paris").
+  - Cities with sightseeing on the way are kept, with two legs (Amsterdam → Brussels → Paris).
+  - Automatic day titles follow the plan ("Amsterdam → Paris" on travel days); planners' own titles are kept.
+  - Hotels are the planner's choice (*Replace* on each stay).
+- **PDF designer**:
+  - *Day-by-day text*: heading, subtitle, bullet points (`**bold**`), meals line and note per day. Each starts from the automatic text, the preview updates as you type, and the itinerary itself is not changed.
+  - *Photos*: upload from the computer or pick from the image library, for the cover and for each day. A chosen cover photo shows on every template.
+  - Stored in `proposal_settings.day_texts` and `cover_image`.
+- **Route on the PDF**: day excursions from a base (Lucerne from Zurich) are no longer route stops; their countries still count.
+- **Templates keep their PDF design** (texts and photos) and pass it to proposals created from them.
+- **Template import** (`python -m app.cli import-template FILE.json`, `services/template_import.py`):
+  - Builds a template from a structured description: days with city, overnight city, sightseeing (matched to inventory, otherwise custom) and meals.
+  - Can add missing cities and sightseeing to inventory, picks hotels by stars, and stores the PDF wording.
+  - **"European Grand Tour"** (the reference brochure: 12 days, 6 countries, Amsterdam → Brussels → Paris → Luxembourg → Cochem → Zurich) was imported into YANA's database, after a backup. It added Cochem and Reichsburg Castle to inventory. The description file is kept outside the repository (`Downloads\Yana\Samples`).
+- Tests: 6 backend (blank itinerary, planning cities and the day/night rule, day texts and cover, templates keeping PDF texts, template import with cities on the way). Browser flow: 14 checks, zero warnings.
+
 ## Phase 8c – Itinerary first, supplier prices (2026-11-24, from YANA's testing feedback)
 
 YANA feedback: agents ask for an itinerary for N days first; costs depend on season and supplier, so budget comes later. Each cost should be priced from a chosen supplier, with the price editable, before YANA's markup is added. TourBrain (an Indian travel CRM) was reviewed for ideas: plan first, then the quote; supplier prices entered, not fetched; markup on cost.

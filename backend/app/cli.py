@@ -4,6 +4,7 @@
     python -m app.cli seed-demo        # demonstration inventory (empty inventory only)
     python -m app.cli backup           # zip of database, uploads and PDFs into database/backups
     python -m app.cli restore FILE.zip # replace everything with a backup (stop the app first)
+    python -m app.cli import-template FILE.json  # itinerary template from a structured description
 
 The password is prompted for (hidden), or read from YANA_ADMIN_PASSWORD for automation.
 """
@@ -96,6 +97,30 @@ def restore(path: str, yes: bool) -> None:
         print(f"The previous state was saved as {result['safety_backup']}.")
 
 
+def import_template_file(path: str) -> None:
+    import json
+
+    from pydantic import ValidationError as PydValidationError
+    from sqlalchemy import select
+
+    from app.models import User
+    from app.services.template_import import TemplatePlan, import_template
+
+    try:
+        plan = TemplatePlan.model_validate(json.loads(Path(path).read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError, PydValidationError) as exc:
+        sys.exit(f"Cannot read the template file: {exc}")
+    with SessionLocal() as db:
+        user = db.scalar(select(User).where(User.is_active.is_(True)).order_by(User.id))
+        try:
+            it, notes = import_template(db, user, plan)
+        except DomainError as exc:
+            sys.exit(exc.message)
+    print(f"Template created: {it.title} (#{it.id}, {len(plan.days)} days).")
+    for n in notes:
+        print(" - " + n)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -107,6 +132,8 @@ def main() -> None:
     rest = sub.add_parser("restore", help="Restore a backup zip (stop the app first)")
     rest.add_argument("file")
     rest.add_argument("--yes", action="store_true", help="Do not ask for confirmation")
+    imp = sub.add_parser("import-template", help="Create an itinerary template from a JSON description")
+    imp.add_argument("file")
     args = parser.parse_args()
     if args.command == "create-admin":
         create_admin(args.email, args.name)
@@ -116,6 +143,8 @@ def main() -> None:
         backup()
     elif args.command == "restore":
         restore(args.file, args.yes)
+    elif args.command == "import-template":
+        import_template_file(args.file)
 
 
 if __name__ == "__main__":

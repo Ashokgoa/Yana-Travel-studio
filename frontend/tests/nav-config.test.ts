@@ -28,7 +28,7 @@ describe("visibleNavigation", () => {
 
   it("shows Saved Itineraries and Templates but hides unbuilt itinerary pages", () => {
     const ib = visibleNavigation("planner").find((i) => i.label === "Itinerary Builder");
-    expect(ib?.children?.map((c) => c.label)).toEqual(["Saved Itineraries", "Itinerary Templates"]);
+    expect(ib?.children?.map((c) => c.label)).toEqual(["Create Itinerary", "Saved Itineraries", "Itinerary Templates"]);
   });
 
   it("shows every CRM page", () => {

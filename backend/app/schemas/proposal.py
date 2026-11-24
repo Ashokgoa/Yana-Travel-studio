@@ -30,6 +30,23 @@ SECTION_LABELS = {
 HEX = r"^#[0-9A-Fa-f]{6}$"
 
 
+class DayText(BaseModel):
+    """PDF-only wording for one day. None = automatic text from the itinerary. Use **bold** for highlights."""
+
+    heading: str | None = Field(default=None, max_length=200)
+    subtitle: str | None = Field(default=None, max_length=300)
+    bullets: list[str] | None = Field(default=None, max_length=40)
+    meals: str | None = Field(default=None, max_length=300)
+    note: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("bullets")
+    @classmethod
+    def _clean(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        return [line.strip()[:500] for line in value if line and line.strip()]
+
+
 class SectionSetting(BaseModel):
     key: Literal[SECTION_KEYS]  # type: ignore[valid-type]
     enabled: bool = True
@@ -57,6 +74,9 @@ class ProposalSettings(BaseModel):
     price_note: str | None = Field(default=None, max_length=300)
     # Day number (as text) -> media id; 0 hides the photo for that day.
     day_images: dict[str, int] = Field(default_factory=dict)
+    # Day number (as text) -> PDF wording for that day (edited in the designer; the itinerary is not changed).
+    day_texts: dict[str, DayText] = Field(default_factory=dict)
+    cover_image: int | None = None  # media id for the cover photo; None = automatic (first day photo, Premium only)
     primary_color: str | None = Field(default=None, pattern=HEX)
     accent_color: str | None = Field(default=None, pattern=HEX)
 
