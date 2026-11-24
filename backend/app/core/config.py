@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     # PDF export: installed browser used by Playwright ("msedge" or "chrome"); falls back to the other.
     pdf_browser_channel: str = "msedge"
 
+    # AI assistant (Phase 8). "offline" (default) reads text on this computer only. "claude" sends the
+    # pasted text to Anthropic's API: switch on only with IT approval; credentials come from
+    # ANTHROPIC_API_KEY (or an `ant auth login` profile), never from this file.
+    ai_provider: str = Field(default="offline", pattern="^(offline|claude)$")
+    ai_model: str = "claude-opus-5-5"
+
     # Authentication. `secret_key` signs login tokens: set YANA_SECRET_KEY in .env
     # (scripts/setup.ps1 generates one). Required outside development/test.
     secret_key: SecretStr | None = None

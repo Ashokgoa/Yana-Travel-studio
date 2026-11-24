@@ -1,0 +1,3 @@
+# Optional: only needed when YANA_AI_PROVIDER=claude (switch on only with IT approval).
+# Install with: .venv\Scripts\pip install -r requirements-ai.txt
+anthropic==2.13.0

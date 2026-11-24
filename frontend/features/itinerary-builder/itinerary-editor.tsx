@@ -14,6 +14,7 @@ import { ErrorState, TableSkeleton } from "@/components/common/states";
 import { StrategyBadge } from "@/features/itineraries/parts";
 import { DayEditor, type DragState } from "@/features/itinerary-builder/day-editor";
 import { CostSummary, HotelsPanel, LiveChecks, TransportPanel } from "@/features/itinerary-builder/side-panels";
+import { SuggestionsPanel } from "@/features/itinerary-builder/suggestions-panel";
 import { detailKey, useEditor } from "@/features/itinerary-builder/use-editor";
 import { VersionsDialog } from "@/features/itinerary-builder/versions-dialog";
 import { formatDate } from "@/lib/format";
@@ -111,6 +112,7 @@ export function ItineraryEditor({ id }: { id: number }) {
         <div className="space-y-6 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:self-start xl:overflow-y-auto">
           <CostSummary it={it} />
           <LiveChecks it={it} />
+          <SuggestionsPanel it={it} run={run} pending={pending} />
           <HotelsPanel it={it} editable={editable} run={run} />
           <TransportPanel it={it} editable={editable} run={run} />
         </div>

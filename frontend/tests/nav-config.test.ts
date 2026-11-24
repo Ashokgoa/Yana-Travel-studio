@@ -15,7 +15,7 @@ describe("visibleNavigation", () => {
     expect(visibleNavigation("admin").map((i) => i.label)).toContain("Administration");
     expect(visibleNavigation("planner").map((i) => i.label)).not.toContain("Administration");
     expect(visibleNavigation(undefined).map((i) => i.label)).not.toContain("Administration");
-    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF", "Pricing defaults"]);
+    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF", "Pricing defaults", "AI assistant"]);
   });
 
   it("shows the destination inventory pages and suppliers", () => {

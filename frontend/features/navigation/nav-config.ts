@@ -77,6 +77,7 @@ export const NAVIGATION: NavItem[] = [
       { label: "Users", href: "/admin/users", enabled: true, roles: ["admin"] },
       { label: "Branding & PDF", href: "/admin/branding", enabled: true, roles: ["admin"] },
       { label: "Pricing defaults", href: "/admin/pricing", enabled: true, roles: ["admin"] },
+      { label: "AI assistant", href: "/admin/ai", enabled: true, roles: ["admin"] },
     ],
   },
 ];

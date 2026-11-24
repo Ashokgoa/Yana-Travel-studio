@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Loader2, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
 import { ErrorState, TableSkeleton } from "@/components/common/states";
 import { STEPS } from "@/features/requirements/labels";
+import { applySuggestions } from "@/features/requirements/apply-suggestions";
+import { ReadEmailDialog } from "@/features/requirements/read-email-dialog";
 import { ReadinessList, RequirementsSummary } from "@/features/requirements/requirements-summary";
 import {
   StepBudget, StepDestinations, StepFood, StepHotels, StepInterests, StepNotes, StepTransport, StepTravel, StepTravellers,
@@ -71,6 +73,7 @@ function WizardBody({ enquiry, initial, options }: { enquiry: EnquiryDetail; ini
     return STEPS.find((s) => s.n < REVIEW && !initial.completed_steps.includes(s.n))?.n ?? REVIEW;
   });
   const [serverError, setServerError] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);
 
   const savedInput = useMemo(() => JSON.stringify(toInput(saved)), [saved]);
   const dirty = JSON.stringify({ ...draft, completed_steps: [] }) !== JSON.stringify({ ...JSON.parse(savedInput), completed_steps: [] });
@@ -130,11 +133,16 @@ function WizardBody({ enquiry, initial, options }: { enquiry: EnquiryDetail; ini
         title="Customer requirements"
         description={`${enquiry.customer.name} · via ${enquiry.travel_agent.company_name}`}
         actions={
-          <Button variant="outline" onClick={() => persist(null, () => toast.success("Draft saved"))} disabled={save.isPending}>
-            {save.isPending ? <Loader2 className="animate-spin" aria-hidden /> : <Save aria-hidden />} Save draft
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setReading(true)}><Sparkles aria-hidden /> Read from email</Button>
+            <Button variant="outline" onClick={() => persist(null, () => toast.success("Draft saved"))} disabled={save.isPending}>
+              {save.isPending ? <Loader2 className="animate-spin" aria-hidden /> : <Save aria-hidden />} Save draft
+            </Button>
+          </>
         }
       />
+      <ReadEmailDialog enquiryId={enquiry.id} open={reading} onOpenChange={setReading}
+        onApply={(picked) => { set(applySuggestions(draft, picked)); toast.success(`${picked.length} item${picked.length === 1 ? "" : "s"} filled in. Check them, then save.`); }} />
 
       <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_18rem]">
         {/* Step navigation */}
