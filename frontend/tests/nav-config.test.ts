@@ -15,7 +15,7 @@ describe("visibleNavigation", () => {
     expect(visibleNavigation("admin").map((i) => i.label)).toContain("Administration");
     expect(visibleNavigation("planner").map((i) => i.label)).not.toContain("Administration");
     expect(visibleNavigation(undefined).map((i) => i.label)).not.toContain("Administration");
-    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF", "Pricing defaults", "AI assistant"]);
+    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF", "Pricing defaults", "AI assistant", "Backups & data"]);
   });
 
   it("shows the destination inventory pages and suppliers", () => {
@@ -26,9 +26,9 @@ describe("visibleNavigation", () => {
     expect(visible.map((i) => i.label)).toContain("Suppliers");
   });
 
-  it("shows Saved Itineraries but hides unbuilt itinerary pages", () => {
+  it("shows Saved Itineraries and Templates but hides unbuilt itinerary pages", () => {
     const ib = visibleNavigation("planner").find((i) => i.label === "Itinerary Builder");
-    expect(ib?.children?.map((c) => c.label)).toEqual(["Saved Itineraries"]);
+    expect(ib?.children?.map((c) => c.label)).toEqual(["Saved Itineraries", "Itinerary Templates"]);
   });
 
   it("shows every CRM page", () => {

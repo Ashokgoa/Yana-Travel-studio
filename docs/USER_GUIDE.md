@@ -49,6 +49,12 @@ After creating an enquiry you go straight to **Customer requirements** (also rea
 8. **Budget**: per person or group total (the other is shown for reference), currency, flexibility, class.
 9. **Notes**: customer requests and internal staff-only notes.
 
+**Read from email**: paste the agent's email or notes and click *Read*.
+- The app lists what it found: travellers, dates, places, hotels, food, budget, special requests. Each item shows the sentence it came from.
+- Places that aren't in Destination Inventory are listed separately.
+- Untick anything wrong. A value that would replace one already entered is shown as *Replaces: …* and left unticked.
+- Click *Use N selected*, check the steps, then save. By default the email is read on this computer and isn't sent anywhere (see *Administration → AI assistant*).
+
 The **Readiness** panel lists anything still missing and any conflicts (for example more must-visit places than nights). The final **Review** step shows everything on one page.
 
 ## Generating itineraries
@@ -77,6 +83,26 @@ Open an itinerary and click **Edit itinerary**. Generated versions are kept unch
 - **Transport**: choose the vehicle for the trip and switch any leg to train.
 - **Checks** (right-hand side) are re-done after every change: duplicates, closed days, too-busy days, unverified diets, meals to arrange, hotel category, vehicle size and countries, long drives, over budget. The **estimated cost** updates too.
 - **Save version** gives the current state a name (e.g. "Hotel upgrades") and keeps it read-only. **Versions** lists all versions: *View* any of them, *Restore* one as a new draft (nothing is overwritten), or compare two to see what changed. **Duplicate** copies the whole itinerary.
+
+## Suggestions and templates
+
+**Suggestions** (right-hand side of the builder) point out possible improvements using your inventory:
+- a sightseeing booked twice, or on a day it is closed;
+- something unsuitable for the children in the group;
+- a restaurant without a verified option for the customer's diet (with a suitable one in the same city);
+- an empty free day (with matching sightseeing that is open that day);
+- a hotel below the requested category.
+
+Click **Apply** to make that one change. It is made on a working draft, like any edit; nothing happens without your click.
+
+**Templates**: on an itinerary, click **Save as template** to keep a read-only copy (for example "European Grand Tour, 12 days"). On an enquiry, **From a template** creates a new itinerary from it. The dates move to the customer's arrival date and hotel rooms are re-priced for those dates. Then check travellers and rooms, and edit as usual. Templates are listed under **Itinerary Builder → Itinerary Templates**.
+
+## Backups and demo data (administrators)
+
+*Administration → Backups & data*:
+- **Back up now** saves the database, uploaded photos and PDFs into `database\backups` on this computer. You can also run `scripts\backup.ps1`. Download backups and keep copies in a second, company-approved place.
+- **Restore** replaces everything, so it is done from the command line with the app stopped: `scripts\restore.ps1 -File database\backups\<file>.zip`. A safety backup of the current state is made first.
+- **Remove demo data**: once real inventory is loaded, this deletes the fictional DEMO hotels, restaurants, vehicles and suppliers. Any still used by an itinerary are kept as inactive, so no itinerary breaks. Real countries, cities and sightseeing are not touched.
 
 ## Pricing an itinerary (Pricing & costing)
 

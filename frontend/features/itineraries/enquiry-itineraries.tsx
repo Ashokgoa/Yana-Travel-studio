@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Columns3, Loader2, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FromTemplateButton } from "@/features/templates/template-dialogs";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ErrorState, TableSkeleton } from "@/components/common/states";
 import { ItineraryCard } from "@/features/itineraries/parts";
@@ -60,6 +61,7 @@ export function EnquiryItineraries({ enquiryId }: { enquiryId: number }) {
               <Columns3 aria-hidden /> Compare
             </Link>
           )}
+          <FromTemplateButton enquiryId={enquiryId} />
           {generateButton}
         </div>
       </CardHeader>

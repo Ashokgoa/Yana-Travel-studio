@@ -177,7 +177,7 @@ class ItineraryService:
         ))
 
     def list_all(self, q: str | None, strategy: str | None, offset: int, limit: int):
-        stmt = select(Itinerary).options(selectinload(Itinerary.versions)).where(Itinerary.is_archived.is_(False))
+        stmt = select(Itinerary).options(selectinload(Itinerary.versions)).where(Itinerary.is_archived.is_(False), Itinerary.kind == "proposal")
         if strategy:
             stmt = stmt.where(Itinerary.strategy == strategy)
         if q:

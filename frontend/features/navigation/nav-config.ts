@@ -44,7 +44,7 @@ export const NAVIGATION: NavItem[] = [
     children: [
       { label: "Create Itinerary", href: "/itineraries/new", enabled: false },
       { label: "Saved Itineraries", href: "/itineraries", enabled: true },
-      { label: "Itinerary Templates", href: "/itineraries/templates", enabled: false },
+      { label: "Itinerary Templates", href: "/itineraries/templates", enabled: true },
       { label: "Compare Proposals", href: "/itineraries/compare", enabled: false },
     ],
   },
@@ -78,6 +78,7 @@ export const NAVIGATION: NavItem[] = [
       { label: "Branding & PDF", href: "/admin/branding", enabled: true, roles: ["admin"] },
       { label: "Pricing defaults", href: "/admin/pricing", enabled: true, roles: ["admin"] },
       { label: "AI assistant", href: "/admin/ai", enabled: true, roles: ["admin"] },
+      { label: "Backups & data", href: "/admin/data", enabled: true, roles: ["admin"] },
     ],
   },
 ];

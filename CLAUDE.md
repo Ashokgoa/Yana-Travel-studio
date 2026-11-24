@@ -16,3 +16,5 @@ Read `docs/PRD.md` (rules), `docs/DEVELOPMENT_PLAN.md` (risks, open decisions) a
 - Backend tests: `cd backend; .\.venv\Scripts\python.exe -m pytest`
 - Frontend: `cd frontend; npm run typecheck; npm run lint; npm test`
 - Run: `scripts\start.ps1`
+- Backup / restore: `scripts\backup.ps1`, `scripts\restore.ps1 -File <zip>` (app stopped)
+- Optional Claude provider: `pip install -r backend/requirements-ai.txt` + `YANA_AI_PROVIDER=claude` (only with IT approval)

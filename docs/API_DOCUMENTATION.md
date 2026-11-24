@@ -183,6 +183,31 @@ Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working 
 
 Every response re-runs the live checks and cost estimate.
 
+### AI assistant (Phase 8a)
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/ai/status` | Active provider, `sends_data_off_device`, configured provider, model, SDK installed |
+| POST | `/enquiries/{id}/requirements/read-text` `{text}` | Proposed requirement fields `{field, label, value, display, merge, evidence, current, overwrites}`, unmatched places, provider info, fallback note. Nothing is saved. |
+| GET | `/itineraries/{id}/suggestions?version=` | Suggestions `{key, kind, title, reason, action}` (duplicate, closed_day, children, diet, free_day, hotel_category) |
+| POST | `/itineraries/{id}/suggestions/apply` `{key}` | Applies one suggestion on the working copy (started if needed); returns the itinerary. 409 `suggestion_stale` if it no longer applies. |
+
+### Housekeeping (Phase 8b)
+
+| Method | Path | Description |
+|---|---|---|
+| GET / POST | `/admin/backups` | List / create a backup (admins) |
+| GET | `/admin/backups/{name}/download` | Download the zip |
+| DELETE | `/admin/backups/{name}` | Delete a backup |
+| GET | `/admin/demo-data` | Active demo records per type and how many are used in itineraries |
+| POST | `/admin/demo-data/remove` | Delete unused demo records; deactivate used ones |
+| GET | `/itinerary-templates` | Templates |
+| POST | `/itineraries/{id}/save-as-template?version=` `{title, description?}` | Save a read-only copy as a template |
+| DELETE | `/itinerary-templates/{id}` | Archive a template |
+| POST | `/enquiries/{id}/itineraries/from-template` `{template_id}` | New itinerary from a template (dates moved, rooms re-priced) |
+
+Restore is command-line only: `python -m app.cli restore FILE.zip` (`scripts\restore.ps1`).
+
 ### Pricing & costing (Phase 7)
 
 Internal (planners and admins). Every response is the full `PricingView`: lines, room rates, categories, selling prices, other-currency prices, cost, revenue, profit and warnings. All take `?version=` (default: latest).

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
 import { ErrorState, TableSkeleton } from "@/components/common/states";
 import { EstimateNote, RouteMap, StrategyBadge } from "@/features/itineraries/parts";
+import { SaveAsTemplateButton } from "@/features/templates/template-dialogs";
 import { DemoBadge } from "@/features/inventory/badges";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -197,6 +198,7 @@ export function ItineraryDetailView({ id, version }: { id: number; version?: num
         description={`${it.customer_name ?? ""} · ${formatDate(it.start_date)} · ${it.total_days} days / ${it.total_nights} nights · Version ${it.version_number} (${it.version_label})`}
         actions={
           <>
+            {it.enquiry_id && <SaveAsTemplateButton id={it.id} version={version} defaultTitle={it.title.split(":")[0]} />}
             <Link href={`/itineraries/${it.id}/pricing${version ? `?version=${version}` : ""}`} className={buttonVariants({ variant: "outline" })}>
               <Calculator aria-hidden /> Pricing
             </Link>

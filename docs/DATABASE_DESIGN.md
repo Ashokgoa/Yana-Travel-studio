@@ -81,6 +81,10 @@ The polymorphic `media_links` lets one image serve many records without duplicat
 
 Inventory items are always **referenced**, never copied (PRD 14.4). Free-text fields on activities let planners rename or describe without forking inventory.
 
+## Templates, AI and backups (Phase 8)
+
+No new tables. Itinerary templates are `itineraries` rows with `kind = 'template'` and `enquiry_id` NULL (one locked version); they are excluded from the saved-itinerary list. AI suggestions are computed, never stored. Backups are zip files in `database/backups/` (git-ignored) holding `database/yana_studio.db`, `uploads/`, `exports/` and `manifest.json`.
+
 ## Pricing (Phase 7) ✅ migration `0008`
 
 | Table | Key columns |

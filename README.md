@@ -30,6 +30,8 @@ This creates `backend\.venv`, installs dependencies, creates `.env` with a rando
 
 Optional: load demonstration inventory (8 countries, real attractions, fictional DEMO hotels and restaurants) into an empty inventory with `cd backend; .\.venv\Scripts\python.exe -m app.cli seed-demo`.
 
+Back up with `scripts\backup.ps1` (or *Administration → Backups & data*); restore with `scripts\restore.ps1 -File <zip>` while the app is stopped.
+
 Add another administrator later with `scripts\create-admin.ps1`; other users are managed in the app under **Administration → Users**.
 
 ## Run

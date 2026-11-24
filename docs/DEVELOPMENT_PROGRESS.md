@@ -9,10 +9,58 @@
 | 4 | Itinerary engine | ✅ Complete (2026-11-24) |
 | 5 | Visual itinerary builder | ✅ Complete (2026-11-24) |
 | 6 | PDF designer | ✅ Complete (2026-11-24) |
-| 7 | Pricing & costing | ✅ Complete (2026-11-24), awaiting approval |
-| 8 | AI integration (optional) | ⏳ Next |
+| 7 | Pricing & costing | ✅ Complete (2026-11-24) |
+| 8 | AI assistant (offline first) + housekeeping | ✅ Complete (2026-11-24), awaiting approval |
 
 ---
+
+## Phase 8 – AI assistant (offline first) and housekeeping (2026-11-24)
+
+YANA decision (2026-11-24): build both. AI is offline by default on the company laptop; the optional Claude connection stays **off** until IT approves it.
+
+### AI assistant (8a)
+- **Offline requirement reader** (`engines/text_extract.py`, pure rules, no network). It reads:
+  - travellers, children's ages, and "family of / group of / pax" totals;
+  - dates in many formats and trip lengths (15 days, 12D/11N, 7 nights);
+  - arrival and departure places, and countries and cities from inventory, including aliases (Holland, Swiss, Benelux);
+  - hotel stars and style, rooms, food (veg, Jain, non-veg, halal, vegan), meals (including half and full board), interests, pace, transport and GIT/FIT;
+  - budget per person or total in EUR, INR (lakh grouping), USD, GBP or CHF, and special requests (wheelchair, anniversary…).
+  - Places not in inventory are reported, and every value comes with the quote it was read from.
+- **Providers**: `OfflineProvider` (default) and `ClaudeProvider`.
+  - Claude uses the `anthropic` SDK 2.13 (`messages.parse` with a Pydantic schema, model `claude-opus-5-5`). It is used only when `YANA_AI_PROVIDER=claude` and the SDK is installed (`backend/requirements-ai.txt`).
+  - Any error, refusal or missing connection falls back to the offline reader and tells the planner.
+- **Read from email** in the requirements wizard:
+  - Proposed values come with quotes. A value that conflicts with existing data is shown as "Replaces: …" and left unticked.
+  - The wizard merges the chosen values into the form (replace, union for lists, append for destinations and notes). Nothing is saved until the planner saves.
+- **Itinerary suggestions** (`services/itinerary_suggestions.py`, inventory rules only): remove a duplicate visit; move or remove a visit on a closed weekday; remove sightseeing unsuitable for children; use a restaurant with a verified diet option; fill an empty free day with matching open sightseeing; use a hotel of the requested category. Each has a stable key and is applied with **Apply**, through the builder's own edit operations on a working copy (versioned).
+- **Administration → AI assistant**: shows what is active, whether data leaves the computer, and how to switch Claude on (with IT approval).
+
+### Housekeeping (8b)
+- **Backups** (`services/backup_service.py`): one zip holding a consistent SQLite snapshot (online backup API, safe while the app runs), the uploads, the PDFs and a manifest (revision, counts).
+  - Admin page: *Back up now*, download, delete.
+  - Command line: `scripts\backup.ps1`.
+- **Restore** (`scripts\restore.ps1 -File …`, command line only, app stopped):
+  - It validates the zip (manifest, no unsafe paths, SQLite integrity) and refuses while the database is open.
+  - It takes a `before-restore` safety backup, clears stale WAL files, replaces the database, uploads and exports, then runs the migrations.
+- **Itinerary templates** (`kind="template"`, no enquiry):
+  - *Save as template* from any itinerary; the *Itinerary Templates* page lists templates (View, Archive).
+  - *From a template* on an enquiry copies a template, moves the dates to the customer's arrival date and re-prices the rooms for the new dates.
+  - Templates are excluded from Saved Itineraries.
+- **Remove demo data**: only `is_demo` inventory (hotels with their rooms and rates, restaurants, vehicles, suppliers, demo sightseeing). Records still used by itineraries are deactivated, not deleted; image links are dropped but the images stay in the library.
+
+### Tests
+- **Backend:** 16 new tests (reader variants, mapping, provider fallback, suggestions and apply, backups API, restore round trip and safety backup, invalid and unsafe zips, refusal while in use, demo removal, templates). 170 in total.
+- **Frontend:** 2 new (merging read values). 9 in total.
+- **Real browser, development mode:**
+  - AI flow: 14 checks.
+  - Housekeeping flow: 17 checks.
+  - Zero console warnings.
+- **Restore** was also run through the command line, both with the app running (refused) and stopped.
+
+### Known limits
+- The offline reader is rule-based: unusual wording can be missed, so the planner always reviews before saving. Claude reads better but needs IT approval.
+- Suggestions don't invent sightseeing or restaurants; they only use what is in inventory.
+- Restore from the browser is deliberately not offered.
 
 ## Phase 7 – Pricing & costing (2026-11-24)
 

@@ -44,6 +44,19 @@ Playwright drives the browser that is already installed (`channel="msedge"`, fal
 ### TD-029 · Customer-safe proposals: only a planner-entered selling price (Phase 6)
 Inventory prices are supplier costs, so they are never rendered. The PDF shows a price only when the planner types one into the designer; otherwise it shows "Price on request". The internal estimate appears in the designer only, labelled "never in the PDF". Tests check the preview for cost wording and inventory prices. Phase 7 pricing will provide the calculated selling price.
 
+### TD-033 · AI assistant: offline first, suggestions only (Phase 8)
+On a company laptop, no customer text may leave the computer without IT approval. So the default provider is a rule-based offline reader. The Claude provider (official `anthropic` SDK, structured output with `messages.parse` and a Pydantic schema, `claude-opus-5-5`) is coded but used only when `YANA_AI_PROVIDER=claude` is set and the SDK is installed from `requirements-ai.txt`. The API key comes from the environment, never from app settings. Refusals, connection errors and rate limits fall back to the offline reader with a visible note. The server-side model fallbacks parameter isn't used, because the offline reader is the fallback.
+
+Both readers return the same schema with evidence quotes, and the app maps place names to inventory ids itself. Nothing is applied automatically: requirement values go into the wizard draft, and itinerary suggestions are applied one at a time through the builder's edit operations, so every change is versioned (PRD: AI suggestions as reviewable diffs, inventory-only). The status page states plainly whether data leaves the computer.
+
+### TD-034 · Backups via SQLite's online backup API; restore only from the command line (Phase 8)
+`sqlite3.Connection.backup` gives a consistent snapshot while the app is serving requests, so backups can run from the browser.
+
+Restore replaces the live database, so it is deliberately command-line only:
+- It validates the zip (manifest, no path traversal, `PRAGMA integrity_check`).
+- It refuses while the database file is open: on Windows an open file can't be renamed.
+- It writes a safety backup, deletes stale `-wal`/`-shm` files, then runs `alembic upgrade head` so an older backup is brought up to date.
+
 ### TD-031 · Pricing model: category mark-ups, twin-share presentation, live cost lines (Phase 7)
 YANA decided: a margin per service category (mark-up on cost); per adult twin sharing plus single supplement and child prices; EUR with an optional second currency at a manually entered rate; admins and planners see costs.
 - **Per-person prices** come from components: shared costs ÷ all travellers, per-person costs, and half a double room per night. The single supplement is the single rate minus that half (double rate used for single use when no single room type exists, flagged). A child without a bed pays no hotel share; a child with a bed pays an adjustable % of it. No percentage for children is invented.
