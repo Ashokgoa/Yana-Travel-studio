@@ -15,6 +15,15 @@ from app.models.inventory import (
     VehicleCategory,
     vehicle_countries,
 )
+from app.models.itinerary import (
+    Itinerary,
+    ItineraryActivity,
+    ItineraryDay,
+    ItineraryMeal,
+    ItineraryStay,
+    ItineraryTransport,
+    ItineraryVersion,
+)
 from app.models.media import Media, MediaLink
 from app.models.requirements import EnquiryDestination, EnquiryRequirement
 from app.models.setting import AppSetting
@@ -34,6 +43,13 @@ __all__ = [
     "Hotel",
     "HotelRate",
     "HotelRoomType",
+    "Itinerary",
+    "ItineraryActivity",
+    "ItineraryDay",
+    "ItineraryMeal",
+    "ItineraryStay",
+    "ItineraryTransport",
+    "ItineraryVersion",
     "Media",
     "MediaLink",
     "ReferenceCounter",

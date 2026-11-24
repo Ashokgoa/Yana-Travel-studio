@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, crm, inventory, media, system, users
+from app.api.v1 import auth, crm, inventory, itineraries, media, system, users
 
 api_router = APIRouter()
 api_router.include_router(system.router)
@@ -12,3 +12,4 @@ api_router.include_router(crm.customers)
 api_router.include_router(crm.enquiries)
 api_router.include_router(inventory.router)
 api_router.include_router(media.router)
+api_router.include_router(itineraries.router)
