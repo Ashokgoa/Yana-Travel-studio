@@ -73,7 +73,7 @@ def test_pdf_day_texts_and_cover_photo(planner_client, admin_client, planned):
     assert len(days) == 10 and days[0]["heading"] and isinstance(days[0]["bullets"], list)
     cover = upload(admin_client, make_image(size=(1600, 900)), "cover.jpg").json()["media"]["id"]
     html = planner_client.post(f"{API}/itineraries/{iid}/proposal/preview", json={
-        "cover_image": cover,
+        "template": "classic", "cover_image": cover,
         "day_texts": {"2": {"heading": "Discover the Netherlands", "subtitle": "Windmills & canals",
                             "bullets": ["Visit **Zaanse Schans** by coach.", "", "Canal cruise in the evening."], "meals": "Breakfast and Indian dinner.",
                             "note": "Bring a light jacket."}},
@@ -115,7 +115,7 @@ def test_import_template_keeps_cities_on_the_way(db_session, world):
             {"city": world["luc"]["name"], "overnight": world["par"]["name"], "title": "Excursion", "activities": [{"attraction": "Glacier mountain"}]},
             {"city": world["par"]["name"], "overnight": None, "title": "Departure"},
         ],
-        "pdf": {"title": "Imported", "day_texts": {"2": {"bullets": ["Stop at **Via castle**."]}}},
+        "pdf": {"title": "Imported", "template": "classic", "day_texts": {"2": {"bullets": ["Stop at **Via castle**."]}}},
     })
     it, notes = import_template(db_session, user, plan)
     assert any("Added city" in n for n in notes)

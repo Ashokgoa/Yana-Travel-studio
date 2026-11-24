@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ doc.title }}</title>
+<style>
+{{ doc.fonts_css | safe }}
+:root {
+  --primary: {{ doc.primary }}; --accent: {{ doc.accent }};
+  --ink: #1c2230; --muted: #6a7180; --line: #e6dfd3; --paper: #faf7f2; --soft: #f3efe7;
+  --serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+@page {
+  size: A4; margin: 15mm 15mm 17mm 15mm;
+  @bottom-left { content: {{ doc.footer_text | css_string }}; font: 7.5pt 'Inter', 'Segoe UI', sans-serif; color: #9a9fa8; letter-spacing: .2pt; }
+  @bottom-right { content: counter(page, decimal-leading-zero); font: 600 8pt 'Inter', 'Segoe UI', sans-serif; color: {{ doc.accent }}; }
+}
+@page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font: 400 9.6pt/1.55 var(--sans); color: var(--ink); background: #fff; }
+h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 600; color: var(--primary); line-height: 1.15; }
+p { margin: 0 0 7px; }
+img { display: block; }
+.page { break-before: page; }
+.keep { break-inside: avoid; }
+.eyebrow { font: 600 7.4pt/1 var(--sans); letter-spacing: 2.2pt; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+.section-title { font-size: 24pt; margin-bottom: 4px; }
+.rule { width: 46px; height: 3px; background: var(--accent); border-radius: 2px; margin: 10px 0 14px; }
+img.flag { display: inline-block; height: 9px; width: auto; border-radius: 1.5px; box-shadow: 0 0 0 .5px rgba(0,0,0,.18); vertical-align: middle; }
+
+/* ------------------------------------------------------------------ cover */
+.cover { position: relative; width: 210mm; height: 297mm; overflow: hidden; color: #fff;
+  background: var(--primary) {% if doc.cover_image %}url("{{ doc.cover_image }}") center / cover no-repeat{% endif %}; }
+.cover .shade { position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,16,30,.45) 0%, rgba(10,16,30,.05) 28%, rgba(10,16,30,.15) 55%, rgba(10,16,30,.86) 100%); }
+{% if not doc.cover_image %}
+.cover { background: radial-gradient(circle at 80% 15%, color-mix(in srgb, var(--accent) 35%, transparent) 0, transparent 38%),
+                     radial-gradient(circle at 10% 90%, rgba(255,255,255,.08) 0, transparent 45%), var(--primary); }
+.cover .shade { background: none; }
+{% endif %}
+.cover .top { position: absolute; top: 16mm; left: 16mm; right: 16mm; display: flex; justify-content: space-between; align-items: center; }
+.cover .logo { background: rgba(255,255,255,.96); border-radius: 10px; padding: 8px 14px; display: flex; gap: 12px; align-items: center; }
+.cover .logo img { max-height: 40px; max-width: 150px; object-fit: contain; }
+.cover .logo span { font: 600 10pt var(--sans); color: var(--primary); }
+.cover .tag { font: 600 7.5pt var(--sans); letter-spacing: 3pt; text-transform: uppercase; border: 1px solid rgba(255,255,255,.55); border-radius: 999px; padding: 6px 12px; }
+.cover .bottom { position: absolute; left: 16mm; right: 16mm; bottom: 18mm; }
+.cover .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cover .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.32);
+  border-radius: 999px; padding: 4px 10px 4px 6px; font: 500 8pt var(--sans); }
+.cover h1 { color: #fff; font-size: 46pt; font-weight: 700; letter-spacing: -.3pt; line-height: 1.02; text-shadow: 0 2px 18px rgba(0,0,0,.25); }
+.cover .facts { margin-top: 12px; font: 600 11pt var(--sans); letter-spacing: 2pt; text-transform: uppercase; color: var(--accent); }
+.cover .line { height: 1px; background: rgba(255,255,255,.35); margin: 16px 0 12px; }
+.cover .meta { display: flex; gap: 26px; font: 400 8.6pt var(--sans); color: rgba(255,255,255,.9); }
+.cover .meta b { display: block; font: 600 6.8pt var(--sans); letter-spacing: 1.6pt; text-transform: uppercase; color: rgba(255,255,255,.65); margin-bottom: 2px; }
+
+/* ------------------------------------------------------------------ overview */
+.lead { font: 400 11pt/1.65 var(--sans); color: #333a48; margin: 2px 0 14px; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 16px; }
+.tile { display: flex; gap: 9px; align-items: flex-start; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+.tile .ic { flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; }
+.tile .ic svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tile b { display: block; font: 600 6.8pt var(--sans); letter-spacing: 1.4pt; text-transform: uppercase; color: var(--muted); margin-bottom: 1px; }
+.tile span { font: 500 8.8pt/1.35 var(--sans); color: var(--ink); }
+.route { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 2px; margin: 2px 0 10px; }
+.route .stop { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font: 600 8.2pt var(--sans); color: var(--primary); }
+.route .stop.end { background: var(--primary); color: #fff; border-color: var(--primary); }
+.route .arrow { color: var(--accent); font: 700 9pt var(--sans); padding: 0 2px; }
+.map { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(20,30,50,.08); }
+.map svg { display: block; width: 100%; height: auto; }
+
+/* ------------------------------------------------------------------ day pages */
+.day-head { display: flex; gap: 14px; align-items: flex-end; margin-bottom: 10px; }
+.day-num { flex: none; width: 58px; text-align: center; border-right: 2px solid var(--accent); padding-right: 12px; }
+.day-num small { display: block; font: 600 7pt var(--sans); letter-spacing: 2.4pt; color: var(--muted); }
+.day-num strong { display: block; font: 700 32pt/1 var(--serif); color: var(--accent); }
+.day-title .when { font: 600 7.4pt var(--sans); letter-spacing: 1.6pt; text-transform: uppercase; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.day-title h2 { font-size: 21pt; margin: 3px 0 2px; }
+.day-title .sub { font: italic 400 10.5pt var(--serif); color: #4b5262; }
+.hero { position: relative; height: 88mm; border-radius: 12px; overflow: hidden; margin: 4px 0 12px; }
+.hero img { width: 100%; height: 100%; object-fit: cover; }
+.hero.m { height: 70mm; } .hero.s { height: 56mm; }
+.hero .city { position: absolute; left: 10px; bottom: 10px; background: rgba(255,255,255,.94); border-radius: 999px; padding: 4px 10px; font: 600 7.6pt var(--sans); letter-spacing: 1pt; text-transform: uppercase; color: var(--primary); }
+.banner { position: relative; height: 54mm; border-radius: 12px; margin: 4px 0 12px; padding: 14mm 16mm 0; overflow: hidden; color: #fff;
+  background: radial-gradient(circle at 88% 20%, color-mix(in srgb, var(--accent) 45%, transparent) 0, transparent 34%),
+              radial-gradient(circle at 8% 110%, rgba(255,255,255,.12) 0, transparent 40%),
+              linear-gradient(120deg, var(--primary), color-mix(in srgb, var(--primary) 78%, #000)); }
+.banner::after { content: ""; position: absolute; right: 14mm; top: 12mm; width: 34mm; height: 34mm; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.25); }
+.banner .eyebrow { color: rgba(255,255,255,.75); display: flex; gap: 6px; align-items: center; }
+.banner .cityname { font: 700 30pt/1.05 var(--serif); letter-spacing: -.2pt; }
+.banner .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; max-width: 135mm; }
+.banner .tags span { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 3px 9px; font: 500 7.8pt var(--sans); }
+.day-body { display: grid; grid-template-columns: 1fr 60mm; gap: 14px; align-items: start; }
+.programme h4 { font: 600 7.4pt var(--sans); letter-spacing: 2pt; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.programme ul { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--soft); }
+.programme li { position: relative; margin: 0 0 7px; padding-left: 8px; break-inside: avoid; font-size: 10pt; line-height: 1.55; }
+.gallery { display: grid; gap: 8px; margin-top: 14px; break-inside: avoid; }
+.gallery.n1 { grid-template-columns: 1fr; } .gallery.n2 { grid-template-columns: 1fr 1fr; } .gallery.n3 { grid-template-columns: 1fr 1fr 1fr; }
+.gallery figure { margin: 0; position: relative; height: 40mm; border-radius: 10px; overflow: hidden; }
+.gallery.compact figure { height: 30mm; }
+.gallery img { width: 100%; height: 100%; object-fit: cover; }
+.gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 8px 6px; font: 600 7.4pt var(--sans); color: #fff;
+  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.6)); }
+.programme li::before { content: ""; position: absolute; left: -20px; top: .5em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px #fff; }
+.programme strong { font-weight: 600; color: var(--primary); }
+.note { margin-top: 8px; background: var(--paper); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 8px 10px; font: italic 400 9pt/1.5 var(--serif); color: #3f4656; }
+.side { display: flex; flex-direction: column; gap: 9px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; break-inside: avoid; }
+.card .pic { height: 30mm; width: 100%; object-fit: cover; }
+.card .in { padding: 8px 10px; }
+.card h5 { margin: 0 0 3px; font: 600 6.8pt var(--sans); letter-spacing: 1.8pt; text-transform: uppercase; color: var(--muted); display: flex; gap: 5px; align-items: center; }
+.card h5 svg { width: 11px; height: 11px; stroke: var(--accent); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.card .name { font: 600 10pt/1.25 var(--serif); color: var(--primary); }
+.stars { color: var(--accent); letter-spacing: 1pt; font-size: 8pt; }
+.card .small { font-size: 8pt; color: var(--muted); }
+.meal { display: flex; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px dashed var(--line); }
+.meal:first-of-type { border-top: 0; }
+.meal .thumb { flex: none; width: 30px; height: 30px; border-radius: 8px; object-fit: cover; }
+.meal .dot { flex: none; width: 30px; height: 30px; border-radius: 8px; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+.meal .dot svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.meal b { display: block; font: 600 6.6pt var(--sans); letter-spacing: 1.4pt; text-transform: uppercase; color: var(--muted); }
+.meal span { font-size: 8.4pt; line-height: 1.3; }
+.meals-line { margin-top: 6px; font-size: 8pt; color: var(--muted); }
+
+/* ------------------------------------------------------------------ hotels, table, price, terms */
+.hotels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.hotel { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; break-inside: avoid; }
+.hotel .pic { height: 38mm; width: 100%; object-fit: cover; }
+.hotel .ph { height: 16mm; background: linear-gradient(120deg, var(--soft), var(--paper)); display: flex; align-items: center; padding: 0 12px; }
+.hotel .ph svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+.hotel .in { padding: 9px 12px 11px; }
+.hotel .city { font: 600 7pt var(--sans); letter-spacing: 1.8pt; text-transform: uppercase; color: var(--accent); }
+.hotel .name { font: 600 12pt/1.25 var(--serif); color: var(--primary); margin: 2px 0; }
+.hotel .facts { font-size: 8.2pt; color: var(--muted); }
+.hotel-note { margin-top: 10px; color: var(--muted); font-size: 8pt; }
+.glance { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 6px; font-size: 8.8pt; }
+.glance th { text-align: left; font: 600 6.8pt var(--sans); letter-spacing: 1.6pt; text-transform: uppercase; color: var(--muted); padding: 0 8px 6px; border-bottom: 2px solid var(--primary); }
+.glance td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.glance tr { break-inside: avoid; }
+.glance .n { width: 26px; }
+.glance .n span { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font: 600 8pt var(--sans); align-items: center; justify-content: center; }
+.glance .country { white-space: nowrap; font-weight: 600; color: var(--primary); }
+.price-card { background: var(--primary); color: #fff; border-radius: 14px; padding: 18px 20px; margin: 6px 0 16px; break-inside: avoid; position: relative; overflow: hidden; }
+.price-card::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.price-card .eyebrow { color: rgba(255,255,255,.7); }
+.price-card .amount { font: 700 26pt/1.1 var(--serif); color: #fff; }
+.price-card .per { font: 500 9pt var(--sans); color: rgba(255,255,255,.75); margin-left: 6px; }
+.price-card table { width: 100%; border-collapse: collapse; margin-top: 8px; position: relative; z-index: 1; }
+.price-card td { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.18); font-size: 9.4pt; }
+.price-card td.v { text-align: right; font: 600 11pt var(--sans); color: #fff; white-space: nowrap; }
+.price-card tr:first-child td.v { font: 700 15pt var(--serif); color: var(--accent); }
+.price-card .note { background: transparent; border: 0; padding: 6px 0 0; color: rgba(255,255,255,.8); font: italic 9pt var(--serif); }
+.lists { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lists h3 { font-size: 13pt; margin-bottom: 8px; }
+.lists ul { list-style: none; margin: 0; padding: 0; }
+.lists li { display: flex; gap: 8px; margin: 0 0 6px; font-size: 9pt; break-inside: avoid; }
+.lists li i { flex: none; width: 16px; height: 16px; border-radius: 50%; font: 700 8.5pt/16px var(--sans); text-align: center; font-style: normal; margin-top: 1px; }
+.lists .yes i { background: #e3f1e7; color: #1f7a3a; }
+.lists .no i { background: #f3eeee; color: #9b4a4a; }
+.terms { columns: 2; column-gap: 16px; font-size: 8.2pt; color: #4a5160; }
+.terms p { break-inside: avoid; }
+.closing { margin-top: 22mm; text-align: center; }
+.closing .quote { font: italic 400 15pt/1.55 var(--serif); color: var(--primary); max-width: 150mm; margin: 0 auto; }
+.closing .sign { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.closing .sign img { max-height: 46px; max-width: 160px; object-fit: contain; }
+.closing .contact { font-size: 8.6pt; color: var(--muted); }
+.closing .meta { margin-top: 16px; font-size: 7.4pt; color: #a0a5ae; letter-spacing: .4pt; }
+
+@media screen {
+  body { background: #e9e9e9; padding: 24px 0; }
+  .sheet { width: 210mm; margin: 0 auto; background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,.18); }
+  .sheet > .page, .sheet > .flow { padding: 15mm 15mm 17mm; }
+  .page { border-top: 10px solid #e9e9e9; }
+  .cover { border: 0; }
+}
+@media print { .sheet > .page, .sheet > .flow { padding: 0; } .page { border: 0; } }
+</style>
+</head>
+<body>
+{%- macro icon(name) -%}
+{%- if name == 'Destinations' -%}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+{%- elif name == 'Duration' -%}<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+{%- elif name == 'Group size' -%}<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg>
+{%- elif name == 'Hotels' -%}<svg viewBox="0 0 24 24"><path d="M3 20V7M21 20v-7a3 3 0 0 0-3-3H10v7M3 14h18"/><circle cx="6.5" cy="11" r="1.8"/></svg>
+{%- elif name == 'Meals' -%}<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 2-3 4.5-3 8h3v10"/></svg>
+{%- elif name == 'Transportation' -%}<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M3 11h18M7 21v-4M17 21v-4"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg>
+{%- else -%}<svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/></svg>
+{%- endif -%}
+{%- endmacro -%}
+{%- macro segments(parts) -%}{% for text, bold in parts %}{% if bold %}<strong>{{ text }}</strong>{% else %}{{ text }}{% endif %}{% endfor %}{%- endmacro -%}
+{%- set bed = '<svg viewBox="0 0 24 24"><path d="M3 20V7M21 20v-7a3 3 0 0 0-3-3H10v7M3 14h18"/></svg>' -%}
+{%- set fork = '<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 2-3 4.5-3 8h3v10"/></svg>' -%}
+<div class="sheet">
+{% set ns = namespace(overview=false, pricepage=false, termspage=false) %}
+{% for key in doc.sections %}
+  {% if key == 'cover' %}
+  <section class="cover">
+    <div class="shade"></div>
+    <div class="top">
+      <div class="logo">{% for l in doc.logos %}<img src="{{ l }}" alt="">{% endfor %}{% if not doc.logos %}<span>{{ doc.company }}</span>{% endif %}</div>
+      <div class="tag">Tour proposal</div>
+    </div>
+    <div class="bottom">
+      <div class="chips">{% for c in doc.countries %}<span class="chip">{% if c.flag %}<img class="flag" src="{{ c.flag }}" alt="">{% endif %}{{ c.name }}</span>{% endfor %}</div>
+      <h1>{{ doc.title }}</h1>
+      <div class="facts">{{ doc.subtitle }}</div>
+      <div class="line"></div>
+      <div class="meta">
+        {% if doc.customer %}<div><b>Prepared for</b>{{ doc.customer }}</div>{% endif %}
+        {% if doc.dates_text %}<div><b>Travel dates</b>{{ doc.dates_text }}</div>{% endif %}
+        <div><b>Curated by</b>{{ doc.curated_line | replace('Curated by ', '') }}</div>
+      </div>
+    </div>
+  </section>
+
+  {% elif key in ('highlights', 'route_map') %}
+    {% if not ns.overview %}{% set ns.overview = true %}
+    <section class="page">
+      <div class="eyebrow">Your journey</div>
+      <h2 class="section-title">Trip overview</h2>
+      <div class="rule"></div>
+      {% if 'cover' in doc.sections %}<p class="lead">{{ doc.intro }}</p>{% endif %}
+    {% endif %}
+    {% if key == 'highlights' %}
+      <div class="tiles keep">{% for label, value in doc.highlights %}<div class="tile"><div class="ic">{{ icon(label) | safe }}</div><div><b>{{ label }}</b><span>{{ value }}</span></div></div>{% endfor %}</div>
+    {% else %}
+      <div class="keep">
+        <div class="route">{% for c in doc.route_cities %}<span class="stop{% if loop.first or loop.last %} end{% endif %}">{{ c }}</span>{% if not loop.last %}<span class="arrow">→</span>{% endif %}{% endfor %}</div>
+        {% if doc.map_svg %}<div class="map">{{ doc.map_svg | safe }}</div>{% endif %}
+      </div>
+    {% endif %}
+    {% if loop.nextitem not in ('highlights', 'route_map') or loop.last %}</section>{% endif %}
+
+  {% elif key == 'days' %}
+    {% for dy in doc.days %}
+    <section class="page day">
+      <div class="day-head">
+        <div class="day-num"><small>DAY</small><strong>{{ '%02d' % dy.number }}</strong></div>
+        <div class="day-title">
+          <div class="when">{{ dy.date_text }}{% for f in dy.flags %}<img class="flag" src="{{ f }}" alt="">{% endfor %}</div>
+          <h2>{{ dy.heading }}</h2>
+          {% if dy.subtitle %}<div class="sub">{{ dy.subtitle }}</div>{% endif %}
+        </div>
+      </div>
+      {% if dy.image %}<div class="hero {{ dy.hero_size }}"><img src="{{ dy.image }}" alt="">{% if dy.city %}<span class="city">{{ dy.city }}</span>{% endif %}</div>
+      {% else %}<div class="banner">
+        <div class="eyebrow">Today in{% for f in dy.flags %} <img class="flag" src="{{ f }}" alt="">{% endfor %}</div>
+        <div class="cityname">{{ dy.city }}</div>
+        {% if dy.sights %}<div class="tags">{% for t in dy.sights %}<span>{{ t }}</span>{% endfor %}</div>{% endif %}
+      </div>{% endif %}
+      <div class="day-body">
+        <div class="programme">
+          <h4>Programme</h4>
+          <ul>{% for b in dy.bullets %}<li>{{ segments(b) }}</li>{% endfor %}</ul>
+          {% if dy.note %}<div class="note">{{ dy.note }}</div>{% endif %}
+        </div>
+        <aside class="side">
+          {% if dy.overnight %}
+          <div class="card">
+            {% if dy.overnight.image %}<img class="pic" src="{{ dy.overnight.image }}" alt="">{% endif %}
+            <div class="in">
+              <h5>{{ bed | safe }} Overnight</h5>
+              <div class="name">{{ dy.overnight.hotel }}</div>
+              {% if dy.overnight.stars %}<div class="stars">{{ dy.overnight.stars }}</div>{% endif %}
+              <div class="small">{{ dy.overnight.city }}</div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="card"><div class="in">
+            <h5>{{ fork | safe }} Dining</h5>
+            {% for m in dy.dining %}
+            <div class="meal">
+              {% if m.image %}<img class="thumb" src="{{ m.image }}" alt="">{% else %}<div class="dot">{{ fork | safe }}</div>{% endif %}
+              <div><b>{{ m.meal }}</b><span>{{ m.text }}{% if m.place %} · {{ m.place }}{% endif %}</span></div>
+            </div>
+            {% endfor %}
+            <div class="meals-line">{{ dy.meals_line }}</div>
+          </div></div>
+        </aside>
+      </div>
+      {% if dy.gallery %}
+      <div class="gallery n{{ dy.gallery|length }} {{ dy.gallery_size }}">{% for g in dy.gallery %}<figure><img src="{{ g.image }}" alt=""><figcaption>{{ g.caption }}</figcaption></figure>{% endfor %}</div>
+      {% endif %}
+    </section>
+    {% endfor %}
+
+  {% elif key == 'hotels' and doc.hotels %}
+  <section class="page">
+    <div class="eyebrow">Accommodation</div>
+    <h2 class="section-title">Where you’ll stay</h2>
+    <div class="rule"></div>
+    <div class="hotels">
+      {% for h in doc.hotels %}
+      <div class="hotel">
+        {% if h.image %}<img class="pic" src="{{ h.image }}" alt="">{% else %}<div class="ph">{{ bed | safe }}</div>{% endif %}
+        <div class="in">
+          <div class="city">{{ h.city }}</div>
+          <div class="name">{{ h.hotel }}</div>
+          {% if h.stars %}<div class="stars">{{ h.stars }}</div>{% endif %}
+          <div class="facts">{{ h.nights }} night{{ '' if h.nights == 1 else 's' }}{% if h.dates %} · {{ h.dates }}{% endif %}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="hotel-note">Hotels are subject to availability at the time of booking; a hotel of a similar standard may be offered.</p>
+  </section>
+
+  {% elif key == 'summary' and doc.summary %}
+  <section class="page">
+    <div class="eyebrow">At a glance</div>
+    <h2 class="section-title">Your journey day by day</h2>
+    <div class="rule"></div>
+    <table class="glance">
+      <thead><tr><th></th><th>Country</th><th>Destination / stay</th></tr></thead>
+      <tbody>{% for r in doc.summary %}<tr><td class="n"><span>{{ r.day }}</span></td><td class="country">{% if r.flag %}<img class="flag" src="{{ r.flag }}" alt=""> {% endif %}{{ r.country }}</td><td>{{ r.text }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+
+  {% elif key == 'price' and doc.price %}
+  {% set ns.pricepage = true %}
+  <section class="page">
+    <div class="eyebrow">Your investment</div>
+    <h2 class="section-title">Tour price</h2>
+    <div class="rule"></div>
+    <div class="price-card">
+      <div class="eyebrow">Price</div>
+      {% if doc.price.rows|length > 1 %}
+      <table>{% for label, value in doc.price.rows %}<tr><td>{{ label }}</td><td class="v">{{ value }}</td></tr>{% endfor %}</table>
+      {% else %}
+      <div><span class="amount">{{ doc.price.text }}</span>{% if doc.price.per %}<span class="per">{{ doc.price.per }}</span>{% endif %}</div>
+      {% endif %}
+      {% if doc.price.note %}<div class="note">{{ doc.price.note }}</div>{% endif %}
+    </div>
+  {% if loop.nextitem != 'inclusions' %}</section>{% endif %}
+
+  {% elif key == 'inclusions' and (doc.inclusions or doc.exclusions) %}
+  {% if loop.previtem != 'price' or not doc.price %}<section class="page">{% endif %}
+    <div class="lists keep">
+      <div class="yes"><h3>What’s included</h3><ul>{% for i in doc.inclusions %}<li><i>✓</i><span>{{ i }}</span></li>{% endfor %}</ul></div>
+      <div class="no"><h3>Not included</h3><ul>{% for i in doc.exclusions %}<li><i>✕</i><span>{{ i }}</span></li>{% endfor %}</ul></div>
+    </div>
+  </section>
+
+  {% elif key == 'terms' and doc.terms %}
+  <section class="page">
+    <div class="eyebrow">Good to know</div>
+    <h2 class="section-title">Terms and conditions</h2>
+    <div class="rule"></div>
+    <div class="terms">{% for p in doc.terms %}<p>{{ p }}</p>{% endfor %}</div>
+  {% if loop.nextitem != 'closing' %}</section>{% endif %}
+
+  {% elif key == 'closing' %}
+  {% if loop.previtem != 'terms' or not doc.terms %}<section class="page">{% endif %}
+    <div class="closing keep">
+      <div class="quote">“{{ doc.closing }}”</div>
+      <div class="sign">
+        {% for l in doc.logos %}<img src="{{ l }}" alt="">{% endfor %}
+        {% for c in doc.contact_lines %}<div class="contact">{{ c }}</div>{% endfor %}
+      </div>
+      <div class="meta">{% if doc.reference %}{{ doc.reference }} · {% endif %}{{ doc.version_label }} · {{ doc.generated_on }}</div>
+    </div>
+  </section>
+  {% endif %}
+{% endfor %}
+</div>
+</body>
+</html>

@@ -35,7 +35,8 @@ def _env() -> Environment:
 
 
 def render_html(doc: ProposalDocument) -> str:
-    return _env().get_template("proposal.html.j2").render(doc=doc, d=asdict)
+    name = "signature.html.j2" if doc.template == "signature" else "proposal.html.j2"
+    return _env().get_template(name).render(doc=doc, d=asdict)
 
 
 class PdfRenderer(ABC):

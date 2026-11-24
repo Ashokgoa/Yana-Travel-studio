@@ -12,7 +12,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-TEMPLATES = ("classic", "premium", "explorer")
+TEMPLATES = ("signature", "classic", "premium", "explorer")
 BRANDING = ("agent", "yana", "both")
 SECTION_KEYS = ("cover", "highlights", "route_map", "days", "hotels", "summary", "price", "inclusions", "terms", "closing")
 SECTION_LABELS = {
@@ -59,7 +59,7 @@ def default_sections() -> list[SectionSetting]:
 class ProposalSettings(BaseModel):
     """Per-itinerary designer settings. `None` text fields mean 'use the automatic text'."""
 
-    template: Literal[TEMPLATES] = "classic"  # type: ignore[valid-type]
+    template: Literal[TEMPLATES] = "signature"  # type: ignore[valid-type]
     branding: Literal[BRANDING] = "agent"  # type: ignore[valid-type]
     sections: list[SectionSetting] = Field(default_factory=default_sections)
     title: str | None = Field(default=None, max_length=120)

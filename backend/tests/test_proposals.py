@@ -69,7 +69,7 @@ def test_proposal_filename():
 def test_settings_default_save_and_validation(planner_client, itinerary):
     iid = itinerary["id"]
     s = planner_client.get(f"{API}/itineraries/{iid}/proposal/settings").json()
-    assert s["template"] == "classic" and s["branding"] == "agent"
+    assert s["template"] == "signature" and s["branding"] == "agent"
     assert [x["key"] for x in s["sections"]][:4] == ["cover", "highlights", "route_map", "days"] and all(x["enabled"] for x in s["sections"])
 
     body = {"template": "premium", "branding": "both", "sections": [{"key": "days", "enabled": True}, {"key": "terms", "enabled": False},
@@ -90,7 +90,7 @@ def test_settings_default_save_and_validation(planner_client, itinerary):
 # ------------------------------------------------------------------ preview content
 def test_preview_follows_the_sample_structure(planner_client, itinerary, enquiry, world):  # noqa: F811
     iid = itinerary["id"]
-    r = _preview(planner_client, iid)
+    r = _preview(planner_client, iid, template="classic")
     assert "default-src 'none'" in r.headers["content-security-policy"]
     html = r.text
     agent = planner_client.get(f"{API}/travel-agents/{enquiry['travel_agent_id']}").json()["company_name"]
@@ -163,9 +163,9 @@ def test_photos_are_embedded_and_can_be_overridden(planner_client, admin_client,
     day_opts = next(o for o in options["day_images"] if o["day_number"] == att_day["day_number"])
     assert [c["media_id"] for c in day_opts["choices"]][:2] == [up["media"]["id"], city_up["media"]["id"]]
 
-    html = _preview(planner_client, iid).text
+    html = _preview(planner_client, iid, template="classic").text
     assert html.count("data:image/jpeg;base64,") >= 2  # day photo + round photo on the map
-    hidden = _preview(planner_client, iid, day_images={str(att_day["day_number"]): 0}).text
+    hidden = _preview(planner_client, iid, template="classic", day_images={str(att_day["day_number"]): 0}).text
     assert hidden.count('class="photo"') < html.count('class="photo"')
 
 
@@ -231,3 +231,23 @@ def test_real_pdf_is_a4_with_page_numbers(planner_client, itinerary):
     assert pages >= 3
     box = re.search(rb"/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)", pdf)
     assert box and round(float(box.group(1))) == 595 and round(float(box.group(2))) == 842  # A4 in points
+
+
+def test_signature_brochure_layout(planner_client, admin_client, itinerary, world):
+    """Default style: fonts embedded, photo cover, overview, one page per day with overnight and dining cards."""
+    iid = itinerary["id"]
+    d = planner_client.get(f"{API}/itineraries/{iid}").json()
+    day = next(x for x in d["days"] if sum(1 for a in x["activities"] if a["attraction_id"]) >= 1 and x["overnight_city"])
+    for a in [a for a in day["activities"] if a["attraction_id"]]:
+        for k in range(2):
+            upload(admin_client, make_image(size=(1200, 800)), f"s{a['attraction_id']}{k}.jpg", category="attraction", entity_type="attraction", entity_id=a["attraction_id"])
+    html = _preview(planner_client, iid).text
+    assert "@font-face{font-family:'Playfair Display'" in html and "font/woff2;base64," in html
+    assert '<section class="cover">' in html and "Tour proposal" in html and "Trip overview" in html
+    assert html.count('<section class="page day">') == d["total_days"]
+    assert "Overnight" in html and "Dining" in html and "Where you’ll stay" in html and "Your journey day by day" in html
+    assert 'class="gallery' in html  # extra photos of the day's sightseeing
+    assert re.search(r'class="hero (l|m|s)"', html)
+    visible = re.sub(r"<[^>]+>", " ", re.sub(r"<(style|svg)\b.*?</\1>", "", html, flags=re.S))
+    for word in ("supplier", "margin", "estimated cost"):
+        assert word not in visible.lower()

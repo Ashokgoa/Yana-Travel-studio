@@ -143,7 +143,7 @@ Open an itinerary and click **Pricing**. The **Pricing & Costing** menu also lis
 
 Open an itinerary and click **PDF proposal**, or click **PDF** in the builder. The **PDF Designer** menu also lists all itineraries.
 
-- **Template**:
+- **Template**: **Signature** (default) is the YANA brochure: photo cover, trip overview with route map, one page per day with hotel and dining cards and a photo strip, hotel gallery and price page. Upload photos of sightseeing, hotels and restaurants in Destination Inventory for the best result.
   - **Classic** is like YANA's reference brochure: route map on the first page, then the days.
   - **Premium** has a full-page photo cover and one day per page.
   - **Explorer** shows the days as a timeline with photos beside them.

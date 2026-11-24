@@ -1,4 +1,4 @@
-export type ProposalTemplate = "classic" | "premium" | "explorer";
+export type ProposalTemplate = "signature" | "classic" | "premium" | "explorer";
 export type ProposalBranding = "agent" | "yana" | "both";
 export type SectionKey = "cover" | "highlights" | "route_map" | "days" | "hotels" | "summary" | "price" | "inclusions" | "terms" | "closing";
 

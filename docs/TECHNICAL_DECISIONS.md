@@ -44,6 +44,9 @@ Playwright drives the browser that is already installed (`channel="msedge"`, fal
 ### TD-029 · Customer-safe proposals: only a planner-entered selling price (Phase 6)
 Inventory prices are supplier costs, so they are never rendered. The PDF shows a price only when the planner types one into the designer; otherwise it shows "Price on request". The internal estimate appears in the designer only, labelled "never in the PDF". Tests check the preview for cost wording and inventory prices. Phase 7 pricing will provide the calculated selling price.
 
+### TD-035 · Signature brochure: embedded fonts and one page per day (Phase 8e)
+Fonts are bundled woff2 files (Playfair Display, Inter; SIL OFL) embedded as data URIs, so the PDF looks the same on any machine and renders offline. The browser can't be asked whether a day will fit, so each day page is laid out with a simple height model in millimetres (heading, photo, programme lines at about 62 characters, side cards, photo strip). The builder chooses the largest main photo that fits and drops the photo strip only when needed, so a day never splits across pages. The model is deliberately a little conservative; the planner can shorten text in *Day-by-day text* if a very long day still runs over.
+
 ### TD-033 · AI assistant: offline first, suggestions only (Phase 8)
 On a company laptop, no customer text may leave the computer without IT approval. So the default provider is a rule-based offline reader. The Claude provider (official `anthropic` SDK, structured output with `messages.parse` and a Pydantic schema, `claude-opus-5-5`) is coded but used only when `YANA_AI_PROVIDER=claude` is set and the SDK is installed from `requirements-ai.txt`. The API key comes from the environment, never from app settings. Refusals, connection errors and rate limits fall back to the offline reader with a visible note. The server-side model fallbacks parameter isn't used, because the offline reader is the fallback.
 

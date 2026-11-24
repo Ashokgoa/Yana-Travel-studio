@@ -48,6 +48,13 @@ class DayBlock:
     bullets: list[list[Segment]]
     meals_line: str
     note: str | None
+    city: str = ""
+    overnight: dict | None = None  # {hotel, stars, city, image}
+    gallery: list[dict] = field(default_factory=list)  # more photos of the day's sightseeing: [{image, caption}]
+    hero_size: str = "l"  # l / m / s: main photo height chosen so the whole day fits on one page
+    gallery_size: str = "normal"  # normal / compact
+    sights: list[str] = field(default_factory=list)  # sightseeing names (shown on the panel when there is no photo)
+    dining: list[dict] = field(default_factory=list)  # [{meal, text, place, cuisine, image}]
 
 
 @dataclass
@@ -80,6 +87,13 @@ class ProposalDocument:
     generated_on: str
     footer_text: str = ""
     extra: dict = field(default_factory=dict)
+    customer: str | None = None
+    agent: str | None = None
+    dates_text: str = ""
+    route_cities: list[str] = field(default_factory=list)
+    countries: list[dict] = field(default_factory=list)  # [{name, flag}]
+    company: str = "YANA DMC"
+    fonts_css: str = ""
 
 
 # ---------------------------------------------------------------------------------- helpers
@@ -112,6 +126,35 @@ def flag_data_uri(iso: str | None) -> str | None:
     return "data:image/svg+xml;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
+def fit_day_page(block: "DayBlock") -> None:
+    """Keep each day on one A4 page (Signature): shrink the main photo, then drop strip photos, if the text is long.
+
+    Rough layout model in millimetres for a 265 mm high content area: heading ~26, main photo 88/70/56,
+    programme lines ~5.4 each (about 62 characters per line), side cards, photo strip 54.
+    """
+    import math
+
+    def lines(text: str, per_line: int = 62) -> int:
+        return max(1, math.ceil(len(text) / per_line))
+
+    text_lines = sum(lines("".join(t for t, _ in b)) for b in block.bullets)
+    programme = 8 + text_lines * 5.6 + ((8 + lines(block.note or "", 70) * 5) if block.note else 0)
+    side = ((24 + (30 if block.overnight.get("image") else 0)) + 9) if block.overnight else 0
+    side += 14 + len(block.dining) * 10.5 + 8
+    body = max(programme, side)
+    budget = 265 - 20 - 2  # A4 content height - day heading (measured) - safety
+    hero_h = lambda size: ({"l": 88, "m": 70, "s": 56}[size] + 16) if block.image else 70  # noqa: E731  (no photo: city panel)
+    for size in ("l", "m", "s"):
+        if body + hero_h(size) + (54 if block.gallery else 0) <= budget:
+            block.hero_size = size
+            return
+    block.hero_size = "s"
+    if block.gallery and body + hero_h("s") + 44 <= budget:
+        block.gallery_size = "compact"  # smaller photo strip still fits
+    else:
+        block.gallery = []  # not enough room for the photo strip on this day's page
+
+
 def parse_markup(text: str) -> list[Segment]:
     """'Visit **Zaanse Schans** by coach' -> [("Visit ", False), ("Zaanse Schans", True), (" by coach", False)]."""
     parts = text.split("**")
@@ -120,6 +163,32 @@ def parse_markup(text: str) -> list[Segment]:
 
 def to_markup(segments: list[Segment]) -> str:
     return "".join(f"**{t}**" if bold else t for t, bold in segments)
+
+
+FONT_DIR = Path(__file__).resolve().parents[1] / "assets" / "fonts"
+FONT_FACES = [
+    ("Playfair Display", "normal", 600, "playfair-display-latin-600-normal.woff2"),
+    ("Playfair Display", "normal", 700, "playfair-display-latin-700-normal.woff2"),
+    ("Playfair Display", "italic", 400, "playfair-display-latin-400-italic.woff2"),
+    ("Inter", "normal", 400, "inter-latin-400-normal.woff2"),
+    ("Inter", "italic", 400, "inter-latin-400-italic.woff2"),
+    ("Inter", "normal", 500, "inter-latin-500-normal.woff2"),
+    ("Inter", "normal", 600, "inter-latin-600-normal.woff2"),
+    ("Inter", "normal", 700, "inter-latin-700-normal.woff2"),
+]
+
+
+@lru_cache(maxsize=1)
+def fonts_css() -> str:
+    """@font-face rules with the bundled fonts embedded, so the PDF renders the same everywhere (no network)."""
+    rules = []
+    for family, style, weight, name in FONT_FACES:
+        path = FONT_DIR / name
+        if path.is_file():
+            data = base64.b64encode(path.read_bytes()).decode()
+            rules.append(f"@font-face{{font-family:'{family}';font-style:{style};font-weight:{weight};font-display:block;"
+                         f"src:url(data:font/woff2;base64,{data}) format('woff2');}}")
+    return "\n".join(rules)
 
 
 def _first_sentence(text: str | None, limit: int = 220) -> str | None:
@@ -226,6 +295,7 @@ class ProposalBuilder:
             "attraction": self.images.links("attraction", attraction_ids),
             "hotel": self.images.links("hotel", hotel_ids),
             "city": self.images.links("city", set(cities)),
+            "restaurant": self.images.links("restaurant", restaurant_ids),
         }
         names = {
             "attraction": {i: a.name for i, a in attractions.items()},
@@ -370,7 +440,9 @@ class ProposalBuilder:
         for s in sorted(v.stays, key=lambda x: x.check_in_day):
             h = hotels.get(s.hotel_id)
             check_in = next((d.date for d in v.days if d.day_number == s.check_in_day), None)
-            hotel_rows.append(dict(city=cities[s.city_id].name if s.city_id in cities else "", hotel=h.name if h else "To be confirmed",
+            first = (ctx["media"]["hotel"].get(h.id) or [None])[0] if h else None
+            hotel_rows.append(dict(image=self.images.data_uri(first, 700) if first else None,
+                                   city=cities[s.city_id].name if s.city_id in cities else "", hotel=h.name if h else "To be confirmed",
                                    stars="★" * (h.star_rating or 0) if h and h.star_rating else "", nights=s.nights,
                                    dates=f"{_fmt_date(check_in)} – {_fmt_date(date.fromordinal(check_in.toordinal() + s.nights))}" if check_in else ""))
 
@@ -398,6 +470,13 @@ class ProposalBuilder:
             reference=enquiry.reference if enquiry else None, version_label=version_label,
             generated_on=_fmt_date(date.today()),
             footer_text=curated,
+            customer=enquiry.customer.name if enquiry and enquiry.customer else None,
+            agent=agent.company_name if agent else None,
+            dates_text=(f"{_fmt_date(v.days[0].date)} – {_fmt_date(v.days[-1].date)}" if v.days else ""),
+            route_cities=[c.name for c in stops],
+            countries=[dict(name=n, flag=flag_data_uri(iso)) for iso, n in countries],
+            company=branding.company_name,
+            fonts_css=fonts_css() if settings.template == "signature" else "",
         )
 
     # ------------------------------------------------------------------ price
@@ -510,9 +589,51 @@ class ProposalBuilder:
                     image = self.images.data_uri(lst[0], 1400)
                     break
 
+        overnight_card = None
+        if overnight:
+            first = (ctx["media"]["hotel"].get(hotel.id) or [None])[0] if hotel else None
+            overnight_card = dict(hotel=hotel.name if hotel and settings.hotel_names_in_days else ("Hotel to be confirmed" if not hotel else "Your hotel"),
+                                  stars="★" * (hotel.star_rating or 0) if hotel and hotel.star_rating else "", city=overnight.name,
+                                  image=self.images.data_uri(first, 500) if first else None)
+        # Photo strip: the day's other sightseeing photos (not the one already used as the main photo).
+        gallery = []
+        hero_ids = set()
+        if override and override != 0:
+            hero_ids.add(override)
+        else:
+            for kind, eid in self._image_sources(d, ctx):
+                lst = ctx["media"][kind].get(eid)
+                if lst:
+                    hero_ids.add(lst[0].id)
+                    break
+        for a in d.activities:
+            if a.attraction_id and len(gallery) < 3:
+                for m in ctx["media"]["attraction"].get(a.attraction_id, [])[:2]:
+                    if m.id not in hero_ids and len(gallery) < 3:
+                        hero_ids.add(m.id)
+                        gallery.append(dict(image=self.images.data_uri(m, 700), caption=a.title))
+        gallery = [g for g in gallery if g["image"]]
+        dining = []
+        for kind in ("breakfast", "lunch", "dinner"):
+            m = meals.get(kind)
+            if m is None:
+                continue
+            name = MEAL_NAMES[kind]
+            if m.arrangement == "hotel":
+                dining.append(dict(meal=name, text="At the hotel", place=None, cuisine=None, image=None))
+            elif m.arrangement == "restaurant":
+                r = restaurants.get(m.restaurant_id)
+                first = (ctx["media"]["restaurant"].get(r.id) or [None])[0] if r else None
+                adj = _cuisine_adjective(r)
+                dining.append(dict(meal=name, text=f"{adj} {name.lower()}".strip().capitalize() if adj else f"{name} at a local restaurant",
+                                   place=r.name if r else None, cuisine=r.cuisine if r else None,
+                                   image=self.images.data_uri(first, 500) if first else None))
+            else:
+                dining.append(dict(meal=name, text="Own arrangement", place=None, cuisine=None, image=None))
         block = DayBlock(number=d.day_number, date_text=d.date.strftime("%A, ") + _fmt_date(d.date), heading=d.title,
                          subtitle=subtitle if subtitle and subtitle != d.title else None, flags=flags, image=image,
-                         bullets=bullets, meals_line=meals_line, note=d.description)
+                         bullets=bullets, meals_line=meals_line, note=d.description, city=city.name if city else "",
+                         overnight=overnight_card, dining=dining, gallery=gallery, sights=sights)
         t = settings.day_texts.get(str(d.day_number))
         if t:
             if t.heading is not None:
@@ -525,6 +646,7 @@ class ProposalBuilder:
                 block.meals_line = t.meals
             if t.note is not None:
                 block.note = t.note or None
+        fit_day_page(block)
         return block
 
     def _activity(self, a, d, ctx, hotel, transports, settings) -> list[Segment]:

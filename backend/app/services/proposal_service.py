@@ -30,6 +30,7 @@ from app.services.storage import LocalFileStorage
 
 BRANDING_KEY = "proposal_branding"
 TEMPLATE_INFO = {
+    "signature": "YANA brochure: photo cover, overview with route map, one page per day with hotel and dining cards, hotel gallery.",
     "classic": "Clean and simple, like a printed brochure: route map on the first page, days flowing on.",
     "premium": "Full-page photo cover, serif headings and one day per page.",
     "explorer": "Day-by-day timeline with photos beside the text.",

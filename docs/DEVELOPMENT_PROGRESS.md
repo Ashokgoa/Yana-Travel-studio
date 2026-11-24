@@ -14,6 +14,25 @@
 
 ---
 
+## Phase 8e – "Signature" brochure PDF (2026-11-24, from YANA's feedback)
+
+Feedback: the PDF looked like a Word document; it needs brochure-quality layout and typography, no day split across pages, more pictures (also of dining), and eye-catching YANA branding.
+- New default style **Signature** (`templates/proposal/signature.html.j2`). Classic, Premium and Explorer remain available.
+  - **Cover:** full-page photo (or branded gradient), logo, "Tour proposal" tag, country chips with flags, large serif title, days/nights strip, and prepared for / travel dates / curated by.
+  - **Trip overview:** lead paragraph, highlight tiles with icons, route as city chips, large route map.
+  - **One page per day:**
+    - Day number and date with flags, title and subtitle.
+    - A main photo, or a designed city panel (city name, flags, the day's sightseeing as tags) when there is no photo.
+    - A programme timeline with bold highlights, and the note as a callout.
+    - Side cards: **Overnight** (hotel photo, stars, city) and **Dining** (each meal with the restaurant name and photo).
+    - A **photo strip** of the day's other sightseeing.
+  - **Hotel gallery**, a day-by-day table, a price card, inclusions and exclusions with ✓/✕, two-column terms, and a closing quote with logo and contacts. Page numbers and the brand line come from CSS margin boxes.
+- **Typography:** Playfair Display (headings) and Inter (text), bundled in `backend/app/assets/fonts` (SIL Open Font License) and embedded in the PDF, so they work offline.
+- **Each day fits on one page** (`fit_day_page`): a layout model of the A4 content area picks the main photo size (88/70/56 mm), then a compact photo strip, or drops the strip if the text is long. Checked on the 12-day Grand Tour: 18 pages, one per day, no split days.
+- Restaurant photos from inventory are used in the Dining card.
+- The European Grand Tour template now uses Signature (after a backup).
+- Tests updated (Classic-specific checks name Classic); new test for the Signature layout and no costs.
+
 ## Phase 8d – Day-by-day planning by hand, PDF text and photos, Grand Tour template (2026-11-24, from YANA's feedback)
 
 YANA feedback: the planner builds the itinerary day by day (city, sightseeing, photos, restaurants, hotels); the app may propose itineraries but must not impose them; then the itinerary is previewed and turned into a PDF with images and logo. The reference brochure should become a template, and the PDF wording should be editable with an immediate preview.
