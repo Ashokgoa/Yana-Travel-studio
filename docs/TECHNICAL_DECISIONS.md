@@ -35,8 +35,17 @@ Vitest 3 pulled in `tinypool` with a critical advisory, so we use Vitest 5. `@ty
 ### TD-011 · Route distances are estimates (planned, Phase 4)
 Great-circle distance × road factor plus average speed, flagged `is_estimate=true` and shown as "Estimated". No paid routing API. See DEVELOPMENT_PLAN risk R3.
 
-### TD-012 · PDF route maps as offline SVG (planned, Phase 6)
-This avoids live tile fetching in headless Chromium and keeps us within OSM tile usage policy. Leaflet is used for the interactive UI only.
+### TD-012 · PDF route maps as offline SVG (Phase 6)
+This avoids live tile fetching in headless Chromium and keeps us within OSM tile usage policy. Borders come from Natural Earth (public domain, 1:50m, clipped to Europe and rounded to 0.01°, 360 KB) and flags from flag-icons (MIT). Both are bundled in `backend/app/assets`. Leaflet is used for the interactive UI only.
+
+### TD-028 · PDF rendering with the installed Edge via Playwright (Phase 6)
+Playwright drives the browser that is already installed (`channel="msedge"`, falling back to `chrome`, configurable with `YANA_PDF_BROWSER_CHANNEL`), so no browser download is needed on company laptops. The HTML is fully self-contained: images are embedded as data URIs (resized to 1400 px for photos, 240 px for map photos), JavaScript is disabled and the browser context is offline. Page numbers use CSS `@page` margin boxes. The same HTML serves the live preview in a sandboxed iframe (`sandbox=""`, CSP `default-src 'none'`). Rendering is behind a `PdfRenderer` interface so a server-side renderer can replace it later.
+
+### TD-029 · Customer-safe proposals: only a planner-entered selling price (Phase 6)
+Inventory prices are supplier costs, so they are never rendered. The PDF shows a price only when the planner types one into the designer; otherwise it shows "Price on request". The internal estimate appears in the designer only, labelled "never in the PDF". Tests check the preview for cost wording and inventory prices. Phase 7 pricing will provide the calculated selling price.
+
+### TD-030 · Each PDF belongs to a saved version (Phase 6)
+Exporting from an open working draft first saves it as a locked version ("PDF proposal"). The export row stores the version id and number plus the settings snapshot, so any PDF can be traced to its exact content. The enquiry moves to *Proposal generated* only from earlier statuses, never backwards.
 
 ### TD-013 · Authentication: Argon2 + signed token in an HttpOnly cookie (Phase 1)
 YANA chose real login. Passwords are hashed with Argon2 (`pwdlib`). Login returns a JWT (HS256, `YANA_SECRET_KEY`, 12 h default) in an **HttpOnly, SameSite=Lax** cookie, so JavaScript can't read it. The backend also accepts `Authorization: Bearer` for API clients and tests. Login errors are identical for unknown email and wrong password. Roles are checked server-side (`require_roles`); the frontend hides admin-only UI but never relies on that for security. The token approach can later be replaced by Microsoft Entra ID without changing the endpoints' permission checks.

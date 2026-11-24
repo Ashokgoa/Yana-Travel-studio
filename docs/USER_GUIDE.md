@@ -78,6 +78,28 @@ Open an itinerary and click **Edit itinerary**. Generated versions are kept unch
 - **Checks** (right-hand side) are re-done after every change: duplicates, closed days, too-busy days, unverified diets, meals to arrange, hotel category, vehicle size and countries, long drives, over budget. The **estimated cost** updates too.
 - **Save version** gives the current state a name (e.g. "Hotel upgrades") and keeps it read-only. **Versions** lists all versions: *View* any of them, *Restore* one as a new draft (nothing is overwritten), or compare two to see what changed. **Duplicate** copies the whole itinerary.
 
+## Creating the PDF proposal (PDF designer)
+
+Open an itinerary and click **PDF proposal**, or click **PDF** in the builder. The **PDF Designer** menu also lists all itineraries.
+
+- **Template**:
+  - **Classic** is like YANA's reference brochure: route map on the first page, then the days.
+  - **Premium** has a full-page photo cover and one day per page.
+  - **Explorer** shows the days as a timeline with photos beside them.
+- **Branding**:
+  - **Travel agent** (white label): "Curated by" the agent, with the agent's contact details.
+  - **YANA**: YANA's name, logo and contact details.
+  - **Both**: the agent first, "in partnership with" YANA.
+- **Sections**: tick or untick a section, and use the arrows to change the order.
+- **Price**: type the selling price per person (and a note such as "twin sharing"). Without it, the PDF says *Price on request*. The yellow internal estimate is never printed.
+- **Text**: the title, introduction and closing message are written automatically. Edit them for this proposal, or click *Use automatic text* to go back.
+- **Day photos**: per day, choose *Automatic* (first sightseeing photo, then the hotel, then the city), *No photo*, or a specific photo. Add photos in Destination Inventory first.
+- **Inclusions, exclusions and terms**: inclusions come from the itinerary (hotels, meals, transport, transfers, entrance tickets); exclusions and terms come from the YANA defaults. You can edit any of them, one item per line.
+- The **preview** updates as you change things. **Save settings** keeps your choices for this itinerary.
+- **Create PDF** makes the A4 PDF, downloads it (for example `YANA_Classic_Europe_Sharma_Family_V2.pdf`) and lists it under *PDFs created*. If you were editing a draft, it's first saved as a read-only version named "PDF proposal", so each PDF matches a saved version. The enquiry status changes to *Proposal generated*.
+
+**Administrators:** *Administration → Branding & PDF* holds YANA's logo (upload the official file), colours, contact line, closing message, default exclusions and terms. Replace the placeholder terms with YANA's own, then switch on *Terms reviewed*.
+
 ## Destination inventory and suppliers
 
 Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation) and **Suppliers**, everyone can search and view. **Only administrators** can add, edit, deactivate or reactivate.

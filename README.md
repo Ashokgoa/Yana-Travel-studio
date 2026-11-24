@@ -12,7 +12,7 @@ Local-first B2B travel management and itinerary-proposal platform for **YANA DMC
 | Backend | Python 3.11 · FastAPI · SQLAlchemy 2 · Pydantic 2 · Alembic |
 | Database | SQLite (local) → PostgreSQL-ready |
 | Storage | Local filesystem behind a storage abstraction |
-| PDF (Phase 6) | HTML/CSS templates rendered by Playwright (Chromium / Edge) |
+| PDF (Phase 6) | One HTML/CSS template (Classic / Premium / Explorer), printed by Playwright with the installed Microsoft Edge (or Chrome); offline SVG route maps |
 
 ## Prerequisites (Windows)
 
@@ -89,7 +89,6 @@ backend/        FastAPI app (api → services → repositories → models; engin
 frontend/       Next.js app
 database/       Alembic migrations, seed data, local SQLite file (git-ignored)
 uploads/        Uploaded images by category (git-ignored)
-pdf_templates/  Classic / Premium / Explorer brochure templates
 exports/        Generated PDFs (git-ignored)
 docs/           PRD, architecture, database design, API docs, progress, decisions
 scripts/        Setup / start / test scripts

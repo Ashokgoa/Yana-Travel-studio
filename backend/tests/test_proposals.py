@@ -61,6 +61,8 @@ def test_proposal_filename():
     assert proposal_filename("Classic Europe", "Gen Family", 3) == "YANA_Classic_Europe_Gen_Family_V3.pdf"
     assert proposal_filename("Zürich & Côte d'Azur!", None, 1) == "YANA_Zurich_Cote_d_Azur_V1.pdf"
     assert proposal_filename("", "", 2) == "YANA_Proposal_V2.pdf"
+    long = proposal_filename("Classic Europe: Netherlands, Belgium, France, Germany", "Sharma Family", 1)
+    assert long == "YANA_Classic_Europe_Netherlands_Belgium_Sharma_Family_V1.pdf"
 
 
 # ------------------------------------------------------------------ settings
@@ -93,6 +95,7 @@ def test_preview_follows_the_sample_structure(planner_client, itinerary, enquiry
     html = r.text
     agent = planner_client.get(f"{API}/travel-agents/{enquiry['travel_agent_id']}").json()["company_name"]
     assert f"Curated by {agent}" in html
+    assert "<h1>Classic Europe</h1>" in html  # short brochure title
     for text in ("Classic Europe", "3 Countries · 10 Days · 9 Nights", "Tour Highlights", "Group size:</b> 6 travellers (4 adults, 2 children)",
                  "Group Inclusive Tour (GIT)", "Proposed Travel Route", "<svg", "Day 1 ·", "Meals:</b>", "Your Hotels",
                  "Your Journey at a Glance", "Price on request", "Inclusions", "Exclusions", "Terms and Conditions",
@@ -106,6 +109,8 @@ def test_preview_never_shows_costs_or_internal_data(planner_client, itinerary):
     iid = itinerary["id"]
     options = planner_client.get(f"{API}/itineraries/{iid}/proposal/options").json()
     assert options["internal_estimate_per_person"]  # shown to the planner in the designer only
+    assert options["defaults"]["inclusions"] and options["defaults"]["intro"].startswith("Discover")
+    assert options["version_number"] == 1 and options["version_is_locked"]
     html = re.sub(r"<style>.*?</style>", "", _preview(planner_client, iid).text, flags=re.S)  # visible content only
     estimate = options["internal_estimate_per_person"]
     assert not re.search(rf"\b{estimate}\b", html.replace(",", ""))

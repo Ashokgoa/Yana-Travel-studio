@@ -55,7 +55,7 @@ yana-travel-studio/
     backups/          (git-ignored)
   frontend/           Next.js: app/, components/{ui,layout}, features/<module>/, hooks/, services/, types/, tests/
   uploads/<category>/ local image storage (git-ignored, keys stored relative)
-  pdf_templates/{classic,premium,explorer}/
+  backend/app/templates/proposal/   (Phase 6: one HTML template, Classic / Premium / Explorer styles)
   exports/itineraries/ generated PDFs (git-ignored)
   docs/  scripts/  README.md  CLAUDE.md
 ```

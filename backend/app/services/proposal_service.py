@@ -24,7 +24,7 @@ from app.schemas.proposal import SECTION_LABELS, TEMPLATES, BrandingSettings, Pr
 from app.services.itinerary_checks import evaluate
 from app.services.itinerary_editor import ItineraryEditor
 from app.services.itinerary_service import ItineraryService
-from app.services.proposal_content import ProposalBuilder
+from app.services.proposal_content import ProposalBuilder, default_title
 from app.services.proposal_render import PdfRenderer, get_pdf_renderer, render_html
 from app.services.storage import LocalFileStorage
 
@@ -41,7 +41,10 @@ ADVANCE_FROM = {EnquiryStatus.NEW, EnquiryStatus.IN_PROGRESS, EnquiryStatus.REVI
 def _slug(text: str | None, limit: int = 40) -> str:
     text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode()
     text = re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_")
-    return text[:limit].rstrip("_") or "Proposal"
+    if len(text) > limit:  # cut at a word boundary
+        cut = text[: limit + 1].rsplit("_", 1)[0]
+        text = cut if len(cut) >= limit // 2 else text[:limit]
+    return text.rstrip("_") or "Proposal"
 
 
 def proposal_filename(tour: str, customer: str | None, version_number: int) -> str:
@@ -96,12 +99,16 @@ class ProposalService:
         it = self.itineraries.get(itinerary_id)
         v = self.itineraries.current_version(it, version_number)
         ev = evaluate(self.db, v, it.enquiry_id)
+        auto = ProposalBuilder(self.db, with_images=False).build(it, v, ProposalSettings(), self.branding())
         return ProposalOptions(
             templates=[{"key": k, "label": k.title(), "description": TEMPLATE_INFO[k]} for k in TEMPLATES],
             sections=[{"key": k, "label": label} for k, label in SECTION_LABELS.items()],
             day_images=ProposalBuilder(self.db).image_choices(v),
             internal_estimate_per_person=str(ev.cost_per_person) if ev.cost_per_person else None,
             currency=ev.currency,
+            defaults=dict(title=auto.title, intro=auto.intro, closing=auto.closing, inclusions=auto.inclusions,
+                          exclusions=auto.exclusions, terms="\n".join(auto.terms)),
+            version_number=v.version_number, version_label=v.label, version_is_locked=v.is_locked,
         )
 
     # ----------------------------------------------------------------- preview and export
@@ -131,7 +138,7 @@ class ProposalService:
         pdf = (self.renderer or get_pdf_renderer()).render(html)
 
         enquiry = self.db.scalar(select(Enquiry).options(joinedload(Enquiry.customer)).where(Enquiry.id == it.enquiry_id)) if it.enquiry_id else None
-        filename = proposal_filename(data.title or it.title, enquiry.customer.name if enquiry else None, v.version_number)
+        filename = proposal_filename(data.title or default_title(it), enquiry.customer.name if enquiry else None, v.version_number)
         key = self.exports.save(f"itineraries/{uuid.uuid4().hex}.pdf", pdf)
         export = ProposalExport(itinerary_id=it.id, version_id=v.id, version_number=v.version_number, file_key=key, filename=filename,
                                 template=data.template, branding=data.branding, settings=data.model_dump(mode="json"),

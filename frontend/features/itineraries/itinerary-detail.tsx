@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, BedDouble, Bus, Camera, History, Info, LogIn, LogOut, PencilLine, Plane, Sun, TrainFront, Utensils } from "lucide-react";
+import { AlertTriangle, BedDouble, Bus, Camera, FileText, History, Info, LogIn, LogOut, PencilLine, Plane, Sun, TrainFront, Utensils } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
@@ -196,9 +196,14 @@ export function ItineraryDetailView({ id, version }: { id: number; version?: num
         title={<span className="flex flex-wrap items-center gap-3">{it.title.split(":")[0]} <StrategyBadge strategy={it.strategy} /></span>}
         description={`${it.customer_name ?? ""} · ${formatDate(it.start_date)} · ${it.total_days} days / ${it.total_nights} nights · Version ${it.version_number} (${it.version_label})`}
         actions={
-          <Link href={`/itineraries/${it.id}/edit`} className={buttonVariants()}>
-            <PencilLine aria-hidden /> {it.is_locked && it.version_number === it.latest_version_number ? "Edit itinerary" : "Open builder"}
-          </Link>
+          <>
+            <Link href={`/itineraries/${it.id}/proposal${version ? `?version=${version}` : ""}`} className={buttonVariants({ variant: "outline" })}>
+              <FileText aria-hidden /> PDF proposal
+            </Link>
+            <Link href={`/itineraries/${it.id}/edit`} className={buttonVariants()}>
+              <PencilLine aria-hidden /> {it.is_locked && it.version_number === it.latest_version_number ? "Edit itinerary" : "Open builder"}
+            </Link>
+          </>
         }
       />
       {it.version_number !== it.latest_version_number && (

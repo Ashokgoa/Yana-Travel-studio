@@ -65,7 +65,7 @@ export const NAVIGATION: NavItem[] = [
   },
   { label: "Suppliers", href: "/suppliers", icon: Building2, enabled: true },
   { label: "Pricing & Costing", href: "/pricing", icon: Calculator, enabled: false },
-  { label: "PDF Designer", href: "/pdf-designer", icon: FileText, enabled: false },
+  { label: "PDF Designer", href: "/pdf-designer", icon: FileText, enabled: true },
   { label: "Bookings", href: "/bookings", icon: CalendarCheck, enabled: false },
   {
     label: "Administration",
@@ -73,7 +73,10 @@ export const NAVIGATION: NavItem[] = [
     icon: Settings,
     enabled: true,
     roles: ["admin"],
-    children: [{ label: "Users", href: "/admin/users", enabled: true, roles: ["admin"] }],
+    children: [
+      { label: "Users", href: "/admin/users", enabled: true, roles: ["admin"] },
+      { label: "Branding & PDF", href: "/admin/branding", enabled: true, roles: ["admin"] },
+    ],
   },
 ];
 

@@ -7,12 +7,57 @@
 | 2 | Destination inventory & images | ✅ Complete (2026-11-24) |
 | 3 | Customer requirement capture | ✅ Complete (2026-11-24) |
 | 4 | Itinerary engine | ✅ Complete (2026-11-24) |
-| 5 | Visual itinerary builder | ✅ Complete (2026-11-24), awaiting approval |
-| 6 | PDF designer | ⏳ Next |
-| 7 | Pricing & costing | Planned |
+| 5 | Visual itinerary builder | ✅ Complete (2026-11-24) |
+| 6 | PDF designer | ✅ Complete (2026-11-24), awaiting approval |
+| 7 | Pricing & costing | ⏳ Next |
 | 8 | AI integration | Planned |
 
 ---
+
+## Phase 6 – PDF designer (2026-11-24)
+
+Modelled on YANA's reference proposal (12-page "European Grand Tour", kept outside the repository). Its layout is reproduced and filled automatically from each itinerary; none of its text or photos are copied.
+
+### Backend (6a)
+- **Offline route map** (`engines/route_map.py`): Natural Earth borders and flag-icons flags are bundled (`backend/app/assets`, licences in `LICENSES.md`). Visited countries are coloured, with a dashed route and arrows, pins and labels, round photos, arrival and departure planes, a legend with flags, a compass and a scale bar. No tiles or internet are used.
+- **Document builder** (`services/proposal_content.py`):
+  - Cover: title, "N Countries · D Days · N Nights", introduction.
+  - Tour highlights: destinations, group size, duration, hotels, meals, transport, tour style (GIT/FIT).
+  - Route text and map.
+  - Day by day: heading with flags, date, photo, subtitle, bullets with places in bold, meals line, the planner's day note.
+  - Hotels, the country-and-day summary table (with "no overnight stay"), price, inclusions and exclusions, terms, closing message and contacts.
+- **Templates** (`templates/proposal/proposal.html.j2`):
+  - **Classic**, like the reference PDF.
+  - **Premium**: full-page photo cover, serif headings, one day per page.
+  - **Explorer**: timeline with photos beside the text.
+  - The same HTML drives the live preview and the PDF. Page numbers come from CSS `@page` margin boxes.
+- **Customer-safe output**: no supplier names, costs, margins, internal notes or engine planning notes appear. The only price is the selling price the planner types in; otherwise the PDF shows "Price on request".
+- **Branding per export**: travel agent (white label), YANA, or both. Admins set the YANA logo, colours, contact line and default closing, exclusions and terms.
+- **Export**: Playwright prints with the installed **Microsoft Edge** (falling back to Chrome), so no browser download is needed. The page has JavaScript off and no network access.
+  - An open working draft is saved first as a read-only version named "PDF proposal".
+  - The file is saved as `exports/itineraries/<uuid>.pdf` and downloads as `YANA_<Tour>_<Customer>_V<n>.pdf`.
+  - Each export is recorded in `proposal_exports`, with the version and settings used.
+  - The enquiry moves to *Proposal generated* (only from New, In progress or Revision requested).
+- Migration `0007`. 12 new tests, including a real Edge render (A4, at least 3 pages, page numbers).
+
+### Frontend (6b)
+- **PDF designer** (`/itineraries/{id}/proposal`, opened from *PDF proposal* on the itinerary page or *PDF* in the builder):
+  - Settings: template, branding, colours, sections (on/off and order), price and note, title, introduction and closing (automatic until edited), hotel names in the day text, a photo choice per day (automatic, none, or any photo of that day's sightseeing, hotel or city), inclusions, exclusions and terms.
+  - The live preview refreshes about 0.5 s after each change, in a sandboxed iframe.
+  - *Save settings*; *Create PDF* downloads the file; a list shows the PDFs already created.
+  - The internal cost estimate is shown to the planner only, clearly marked as never in the PDF.
+- **PDF Designer** menu item: pick an itinerary to design.
+- **Administration → Branding & PDF**: logo upload, colours, contact line and default texts, with a warning until the placeholder terms are replaced and marked as reviewed.
+- Real browser, **development mode**: 23 checks pass with zero console warnings. They cover:
+  - opening from the itinerary page, agent branding, "Price on request" and the embedded photo;
+  - the Premium cover, Both branding, the price, switching a section off, reordering, a custom introduction and the photo choice;
+  - save and reload, creating the PDF (a real Edge render, about 300 KB), the enquiry status, the branding page and the menu.
+
+### Known limits
+- The default terms are a short placeholder: YANA must replace them (the admin page warns until this is done).
+- Agent logos are not supported yet; agent branding uses the agent's name and contact details.
+- The preview shows page breaks as dashed lines; exact pagination is only visible in the PDF.
+- A PDF takes about 10 to 15 seconds, mostly Edge starting on this laptop.
 
 ## Phase 5 – Visual itinerary builder (2026-11-24)
 

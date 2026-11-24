@@ -81,6 +81,10 @@ class ProposalDocument:
 
 
 # ---------------------------------------------------------------------------------- helpers
+def default_title(it: Itinerary) -> str:
+    """Short brochure title: the builder title before its detail ("Classic Europe: Netherlands, ... · 15 days")."""
+    return it.title.split(":", 1)[0].strip() or it.title
+
 def _join(items: list[str], last: str = " and ") -> str:
     items = [i for i in items if i]
     if len(items) <= 1:
@@ -128,8 +132,9 @@ def _cuisine_adjective(restaurant: Restaurant | None) -> str:
 class _Images:
     """Loads stored images once and returns them as resized data URIs."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, enabled: bool = True):
         self.db = db
+        self.enabled = enabled
         self.storage = get_storage()
         self._cache: dict[tuple[int, int], str | None] = {}
 
@@ -147,7 +152,7 @@ class _Images:
         return out
 
     def data_uri(self, media: Media | None, max_px: int) -> str | None:
-        if media is None:
+        if media is None or not self.enabled:
             return None
         key = (media.id, max_px)
         if key not in self._cache:
@@ -176,9 +181,9 @@ class _Images:
 
 # ---------------------------------------------------------------------------------- builder
 class ProposalBuilder:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, with_images: bool = True):
         self.db = db
-        self.images = _Images(db)
+        self.images = _Images(db, enabled=with_images)
 
     def image_choices(self, version: ItineraryVersion) -> list[dict]:
         """For the designer: per day, the photos that can be used (attractions, hotel, city)."""
@@ -266,7 +271,7 @@ class ProposalBuilder:
         days = [self._day(d, v, ctx, settings, req) for d in v.days]
 
         # Text ----------------------------------------------------------------------------
-        title = settings.title or it.title
+        title = settings.title or default_title(it)
         subtitle = " · ".join([_plural(len(countries), "Country").replace("Countrys", "Countries"),
                                _plural(v.total_days, "Day"), _plural(v.total_nights, "Night")])
         sights = [a.title for d in v.days for a in d.activities if a.activity_type == "sightseeing"]

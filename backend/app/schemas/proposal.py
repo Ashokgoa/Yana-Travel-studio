@@ -131,3 +131,7 @@ class ProposalOptions(BaseModel):
     day_images: list[dict]  # [{day_number, title, choices: [{media_id, url, label}]}]
     internal_estimate_per_person: str | None  # INTERNAL hint for the planner; never rendered in the PDF
     currency: str
+    defaults: dict  # automatic texts (title, intro, closing, inclusions, exclusions, terms) to start editing from
+    version_number: int
+    version_label: str
+    version_is_locked: bool

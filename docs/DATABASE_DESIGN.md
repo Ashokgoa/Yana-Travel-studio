@@ -90,9 +90,12 @@ Inventory items are always **referenced**, never copied (PRD 14.4). Free-text fi
 
 Totals are computed by the pricing engine, never stored only in the UI.
 
-## Documents (Phase 6)
+## Documents (Phase 6) ✅ migration `0007`
 
 | Table | Key columns |
 |---|---|
-| `pdf_templates` | code (classic, premium, explorer), name, description, template_dir, default_settings JSON, is_active |
-| `generated_documents` | version_id → (RESTRICT), pdf_template_id →, audience (customer / internal), storage_key, filename, settings_snapshot JSON, generated_by → users |
+| `itineraries.proposal_settings` | JSON (`ProposalSettings`): template, branding, sections (order and on/off), texts (NULL = automatic), price, day photo choices, colours |
+| `proposal_exports` | itinerary_id → (CASCADE), version_id → (CASCADE), version_number, file_key (unique, under `exports/`), filename (`YANA_<Tour>_<Customer>_V<n>.pdf`), template, branding, settings JSON snapshot, size_bytes, created_by_id → users |
+| `app_settings['proposal_branding']` | JSON (`BrandingSettings`): company name, tagline, contact line, logo_media_id, colours, default closing, exclusions and terms, terms_reviewed |
+
+Migration `0007`. The three templates are one HTML template with style variants (`backend/app/templates/proposal`), so they need no table.

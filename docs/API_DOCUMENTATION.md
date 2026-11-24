@@ -183,5 +183,19 @@ Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working 
 
 Every response re-runs the live checks and cost estimate.
 
+### PDF proposals (Phase 6)
+
+| Method | Path | Description |
+|---|---|---|
+| GET / PUT | `/itineraries/{id}/proposal/settings` | Designer settings saved for this itinerary |
+| GET | `/itineraries/{id}/proposal/options?version=` | Templates, sections, photo choices per day, automatic texts, version info, and the **internal** estimate (never rendered) |
+| POST | `/itineraries/{id}/proposal/preview?version=` `ProposalSettings?` | Live preview as HTML (no scripts, CSP `default-src 'none'`); nothing is saved |
+| POST | `/itineraries/{id}/proposal/export?version=` `ProposalSettings?` | Creates the PDF (saves an open draft as version "PDF proposal" first), records it and sets the enquiry to *Proposal generated*; 201 → export record |
+| GET | `/itineraries/{id}/proposal/exports` | PDFs created, newest first |
+| GET | `/itineraries/{id}/proposal/exports/{eid}/file` | Download (`application/pdf`, attachment) |
+| GET / PUT | `/settings/branding` | YANA branding and PDF defaults (PUT: admins) |
+
+Errors: `invalid_image` and `invalid_logo` (400), `file_missing` (410), `pdf_unavailable` (503, no Edge or Chrome installed).
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 
