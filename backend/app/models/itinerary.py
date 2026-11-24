@@ -26,6 +26,8 @@ class Itinerary(IdMixin, TimestampMixin, Base):
     batch: Mapped[int] = mapped_column(Integer, default=1, nullable=False)  # generation run within the enquiry
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    # PDF designer settings (schemas.proposal.ProposalSettings); NULL = defaults.
+    proposal_settings: Mapped[dict | None] = mapped_column(JSON)
 
     versions: Mapped[list["ItineraryVersion"]] = relationship(
         back_populates="itinerary", cascade="all, delete-orphan", order_by="ItineraryVersion.version_number"

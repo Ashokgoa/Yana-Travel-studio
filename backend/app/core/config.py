@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     max_upload_mb: int = Field(default=10, ge=1, le=100)
     allowed_image_extensions: list[str] = [".jpg", ".jpeg", ".png", ".webp"]
 
+    # PDF export: installed browser used by Playwright ("msedge" or "chrome"); falls back to the other.
+    pdf_browser_channel: str = "msedge"
+
     # Authentication. `secret_key` signs login tokens: set YANA_SECRET_KEY in .env
     # (scripts/setup.ps1 generates one). Required outside development/test.
     secret_key: SecretStr | None = None

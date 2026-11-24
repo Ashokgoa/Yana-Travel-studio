@@ -25,6 +25,7 @@ from app.models.itinerary import (
     ItineraryVersion,
 )
 from app.models.media import Media, MediaLink
+from app.models.proposal import ProposalExport
 from app.models.requirements import EnquiryDestination, EnquiryRequirement
 from app.models.setting import AppSetting
 from app.models.user import Role, User
@@ -52,6 +53,7 @@ __all__ = [
     "ItineraryVersion",
     "Media",
     "MediaLink",
+    "ProposalExport",
     "ReferenceCounter",
     "Restaurant",
     "Role",

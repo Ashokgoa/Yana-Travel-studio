@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ doc.title }}</title>
+<style>
+  :root { --primary: {{ doc.primary }}; --accent: {{ doc.accent }}; --ink: #222; --muted: #666; --rule: #d9d9d9; }
+  @page {
+    size: A4;
+    margin: 16mm 17mm 18mm 17mm;
+    @bottom-left { content: {{ doc.footer_text | css_string }}; font: 8pt 'Segoe UI', Arial, sans-serif; color: #888; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt 'Segoe UI', Arial, sans-serif; color: #888; }
+  }
+  @page :first {
+    @bottom-left { content: none; } @bottom-right { content: none; }
+    {% if doc.template == 'premium' and 'cover' in doc.sections %}margin: 0;{% endif %}
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; color: var(--ink); font: 10.5pt/1.45 'Segoe UI', Arial, Helvetica, sans-serif; background: #fff; }
+  h1, h2, h3 { color: var(--primary); margin: 0; line-height: 1.25; }
+  h3.section { font-size: 13pt; margin: 18px 0 8px; break-after: avoid; }
+  thead { display: table-header-group; }
+  p { margin: 0 0 8px; }
+  ul { margin: 6px 0 8px; padding-left: 20px; }
+  li { margin: 3px 0; break-inside: avoid; }
+  img.flag { height: 0.8em; width: auto; vertical-align: baseline; margin-left: 4px; border: 0.5px solid rgba(0,0,0,.2); }
+  .page-break { break-before: page; }
+  .avoid { break-inside: avoid; }
+  .logos { display: flex; gap: 14px; justify-content: flex-end; align-items: center; min-height: 0; }
+  .logos img { max-height: 46px; max-width: 160px; object-fit: contain; }
+  .curated { text-align: center; font-style: italic; font-weight: 600; color: var(--primary); opacity: .85; margin: 0 0 14px; }
+  .map svg { display: block; width: 100%; height: auto; border-radius: 6px; }
+  .map { margin-top: 8px; break-inside: avoid; }
+  .highlights li b { color: #111; }
+
+  /* ---------- cover ---------- */
+  .cover h1 { text-align: center; font-size: 22pt; text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
+  .cover .sub { text-align: center; color: var(--accent); font-weight: 700; font-size: 12pt; margin: 6px 0 14px; }
+
+  /* ---------- days ---------- */
+  .day { margin: 0 0 22px; }
+  .day h2 { font-size: 13.5pt; margin-bottom: 8px; }
+  .day h2 .date { display: block; font-size: 9pt; font-weight: 500; color: var(--muted); margin-top: 2px; }
+  .day .photo { width: 100%; height: 82mm; object-fit: cover; display: block; margin: 4px 0 10px; }
+  .day .subtitle { font-weight: 700; margin: 8px 0 2px; }
+  .day .meals { margin-top: 4px; }
+  .day .note { font-style: italic; color: #333; }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 10pt; }
+  th { color: var(--primary); text-align: left; font-weight: 700; padding: 8px 10px; border: 1px solid #8f8f8f; }
+  td { padding: 8px 10px; border: 1px solid #8f8f8f; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.country { font-weight: 700; white-space: nowrap; }
+  td.country img { height: 0.85em; margin: 0 6px 0 0; vertical-align: baseline; border: 0.5px solid rgba(0,0,0,.2); }
+  .price { border: 2px solid var(--accent); border-radius: 8px; padding: 14px 18px; margin: 10px 0 14px; break-inside: avoid; }
+  .price .amount { font-size: 18pt; font-weight: 700; color: var(--primary); }
+  .price .per { color: var(--muted); margin-left: 6px; }
+  .price h3.flush { margin-top: 0; }
+  .price .price-note { margin: 6px 0 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .terms { font-size: 9pt; color: #444; }
+  .closing { text-align: center; font-weight: 700; margin: 26px 20px 8px; line-height: 2; }
+  .contact { text-align: center; color: var(--muted); font-size: 9pt; }
+  .meta { color: var(--muted); font-size: 8.5pt; text-align: center; margin-top: 18px; }
+
+  {% if doc.template == 'premium' %}
+  body { font-family: Georgia, 'Times New Roman', serif; }
+  h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; }
+  .hero { height: 297mm; width: 210mm; position: relative; color: #fff; display: flex; flex-direction: column; justify-content: flex-end;
+          background: var(--primary) {% if doc.cover_image %}url("{{ doc.cover_image }}") center / cover no-repeat{% endif %}; break-after: page; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 35%, rgba(0,0,0,.72) 100%); }
+  .hero > * { position: relative; }
+  .hero .inner { padding: 0 22mm 26mm; }
+  .hero h1 { color: #fff; font-size: 30pt; text-transform: uppercase; letter-spacing: 1px; }
+  .hero .sub { color: var(--accent); font-weight: 700; font-size: 13pt; margin: 10px 0 18px; letter-spacing: 1px; }
+  .hero .curated-hero { font-style: italic; opacity: .9; }
+  .hero .logos { position: absolute; top: 16mm; right: 18mm; background: rgba(255,255,255,.92); padding: 8px 12px; border-radius: 6px; }
+  .day { break-before: page; }
+  .day:first-of-type { break-before: auto; }
+  .day .daynum { color: var(--accent); font: 700 10pt 'Segoe UI', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+  .day h2 { font-size: 18pt; }
+  .day .photo { height: 105mm; border-radius: 6px; }
+  .day ul li::marker { color: var(--accent); }
+  {% elif doc.template == 'explorer' %}
+  .band { background: var(--primary); color: #fff; border-radius: 10px; padding: 18px 22px; margin-bottom: 12px; }
+  .band h1 { color: #fff; text-align: left; }
+  .band .sub { color: var(--accent); text-align: left; margin: 4px 0 0; }
+  .cover h1 { text-align: left; }
+  .timeline { position: relative; padding-left: 46px; }
+  .timeline::before { content: ""; position: absolute; left: 16px; top: 6px; bottom: 6px; width: 3px; background: var(--accent); opacity: .5; border-radius: 2px; }
+  .day { position: relative; display: grid; grid-template-columns: 1fr 62mm; gap: 14px; align-items: start; }
+  .day.noimg { grid-template-columns: 1fr; }
+  .day .dot { position: absolute; left: -46px; top: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--primary); color: #fff;
+              font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 11pt; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--accent); }
+  .day .photo { height: 50mm; border-radius: 8px; margin: 0; }
+  .day h2 { font-size: 13pt; }
+  {% endif %}
+
+  @media screen {
+    body { background: #e9e9e9; padding: 24px 0; }
+    .sheet { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fff; padding: 16mm 17mm 18mm; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
+    .page-break, .day { scroll-margin-top: 16px; }
+    .page-break { border-top: 2px dashed #c7c7c7; margin-top: 18mm; padding-top: 16mm; }
+    {% if doc.template == 'premium' %}
+    .hero { margin: -16mm -17mm 18mm; }
+    .day:not(:first-of-type) { border-top: 2px dashed #c7c7c7; padding-top: 16mm; margin-top: 18mm; }
+    {% endif %}
+  }
+  @media print { .sheet { padding: 0; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+{%- macro segments(parts) -%}{% for text, bold in parts %}{% if bold %}<strong>{{ text }}</strong>{% else %}{{ text }}{% endif %}{% endfor %}{%- endmacro -%}
+{%- macro flags(list) -%}{% for f in list %}<img class="flag" src="{{ f }}" alt="">{% endfor %}{%- endmacro -%}
+{% set ns = namespace(started_days=false, after_cover=false) %}
+{% for key in doc.sections %}
+  {% if key == 'cover' %}
+    {% if doc.template == 'premium' %}
+      <section class="hero">
+        {% if doc.logos %}<div class="logos">{% for l in doc.logos %}<img src="{{ l }}" alt="">{% endfor %}</div>{% endif %}
+        <div class="inner">
+          <h1>{{ doc.title }}</h1>
+          <div class="sub">{{ doc.subtitle }}</div>
+          <div class="curated-hero">{{ doc.curated_line }}</div>
+        </div>
+      </section>
+      <section class="cover"><p>{{ doc.intro }}</p></section>
+    {% elif doc.template == 'explorer' %}
+      <section class="cover">
+        {% if doc.logos %}<div class="logos">{% for l in doc.logos %}<img src="{{ l }}" alt="">{% endfor %}</div>{% endif %}
+        <div class="band"><h1>{{ doc.title }}</h1><div class="sub">{{ doc.subtitle }}</div></div>
+        <p>{{ doc.intro }}</p>
+      </section>
+    {% else %}
+      <section class="cover">
+        {% if doc.logos %}<div class="logos">{% for l in doc.logos %}<img src="{{ l }}" alt="">{% endfor %}</div>{% endif %}
+        <h1>{{ doc.title }}</h1>
+        <div class="sub">{{ doc.subtitle }}</div>
+        <p>{{ doc.intro }}</p>
+      </section>
+    {% endif %}
+  {% elif key == 'highlights' %}
+    <section class="highlights avoid">
+      <h3 class="section">Tour Highlights</h3>
+      <ul>{% for label, value in doc.highlights %}<li><b>{{ label }}:</b> {{ value }}</li>{% endfor %}</ul>
+    </section>
+  {% elif key == 'route_map' %}
+    <section class="route">
+      <h3 class="section">Proposed Travel Route</h3>
+      <p>{{ doc.route_text }}</p>
+      {% if doc.map_svg %}<div class="map">{{ doc.map_svg | safe }}</div>{% endif %}
+    </section>
+  {% elif key == 'days' %}
+    <section class="days page-break">
+      <p class="curated">{{ doc.curated_line }}</p>
+      {% if doc.template == 'explorer' %}<div class="timeline">{% endif %}
+      {% for d in doc.days %}
+        <article class="day{% if not d.image %} noimg{% endif %}" id="day-{{ d.number }}">
+          {% if doc.template == 'explorer' %}
+            <span class="dot">{{ d.number }}</span>
+            <div>
+              <h2>{{ d.heading }}{{ flags(d.flags) }}<span class="date">Day {{ d.number }} · {{ d.date_text }}</span></h2>
+              {% if d.subtitle %}<p class="subtitle">{{ d.subtitle }}</p>{% endif %}
+              <ul>{% for b in d.bullets %}<li>{{ segments(b) }}</li>{% endfor %}</ul>
+              <p class="meals"><b>Meals:</b> {{ d.meals_line }}</p>
+              {% if d.note %}<p class="note">{{ d.note }}</p>{% endif %}
+            </div>
+            {% if d.image %}<img class="photo" src="{{ d.image }}" alt="">{% endif %}
+          {% else %}
+            <div class="avoid">
+              {% if doc.template == 'premium' %}<div class="daynum">Day {{ '%02d' % d.number }} · {{ d.date_text }}</div>{% endif %}
+              <h2>{% if doc.template != 'premium' %}Day {{ d.number }} · {% endif %}{{ d.heading }}{{ flags(d.flags) }}{% if doc.template != 'premium' %}<span class="date">{{ d.date_text }}</span>{% endif %}</h2>
+              {% if d.image %}<img class="photo" src="{{ d.image }}" alt="">{% endif %}
+              {% if d.subtitle %}<p class="subtitle">{{ d.subtitle }}</p>{% endif %}
+            </div>
+            <ul>{% for b in d.bullets %}<li>{{ segments(b) }}</li>{% endfor %}</ul>
+            <p class="meals"><b>Meals:</b> {{ d.meals_line }}</p>
+            {% if d.note %}<p class="note">{{ d.note }}</p>{% endif %}
+          {% endif %}
+        </article>
+      {% endfor %}
+      {% if doc.template == 'explorer' %}</div>{% endif %}
+    </section>
+  {% elif key == 'hotels' and doc.hotels %}
+    <section class="hotels">
+      <h3 class="section">Your Hotels</h3>
+      <table>
+        <thead><tr><th>City</th><th>Hotel</th><th>Nights</th><th>Dates</th></tr></thead>
+        <tbody>{% for h in doc.hotels %}<tr><td>{{ h.city }}</td><td>{{ h.hotel }} <span style="color: var(--accent)">{{ h.stars }}</span></td><td>{{ h.nights }}</td><td>{{ h.dates }}</td></tr>{% endfor %}</tbody>
+      </table>
+      <p class="terms">Hotels are subject to availability at the time of booking; a similar hotel may be offered.</p>
+    </section>
+  {% elif key == 'summary' and doc.summary %}
+    <section class="summary">
+      <h3 class="section">Your Journey at a Glance</h3>
+      <table>
+        <thead><tr><th style="width: 26%">Country</th><th style="width: 12%">Days</th><th>Destination / Stay</th></tr></thead>
+        <tbody>
+        {% for r in doc.summary %}
+          <tr>
+            {% if r.first %}<td class="country" rowspan="{{ r.span }}">{% if r.flag %}<img src="{{ r.flag }}" alt="">{% endif %}{{ r.country }}</td>{% endif %}
+            <td>Day {{ r.day }}</td><td>{{ r.text }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% elif key == 'price' and doc.price %}
+    <section class="price">
+      <h3 class="section flush">Tour Price</h3>
+      <div><span class="amount">{{ doc.price.text }}</span>{% if doc.price.per %}<span class="per">{{ doc.price.per }}</span>{% endif %}</div>
+      {% if doc.price.note %}<p class="price-note">{{ doc.price.note }}</p>{% endif %}
+    </section>
+  {% elif key == 'inclusions' and (doc.inclusions or doc.exclusions) %}
+    <section class="inclusions avoid">
+      <div class="cols">
+        <div><h3 class="section">Inclusions</h3><ul>{% for i in doc.inclusions %}<li>{{ i }}</li>{% endfor %}</ul></div>
+        <div><h3 class="section">Exclusions</h3><ul>{% for i in doc.exclusions %}<li>{{ i }}</li>{% endfor %}</ul></div>
+      </div>
+    </section>
+  {% elif key == 'terms' and doc.terms %}
+    <section class="terms avoid">
+      <h3 class="section">Terms and Conditions</h3>
+      {% for p in doc.terms %}<p>{{ p }}</p>{% endfor %}
+    </section>
+  {% elif key == 'closing' %}
+    <section class="avoid">
+      <p class="closing">{{ doc.closing }}</p>
+      {% for c in doc.contact_lines %}<p class="contact">{{ c }}</p>{% endfor %}
+      <p class="meta">{% if doc.reference %}{{ doc.reference }} · {% endif %}{{ doc.version_label }} · {{ doc.generated_on }}</p>
+    </section>
+  {% endif %}
+{% endfor %}
+</div>
+</body>
+</html>
