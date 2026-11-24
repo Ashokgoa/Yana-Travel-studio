@@ -59,6 +59,10 @@
   .price .per { color: var(--muted); margin-left: 6px; }
   .price h3.flush { margin-top: 0; }
   .price .price-note { margin: 6px 0 0; }
+  .price-table { margin: 4px 0 0; }
+  .price-table td { border: 0; border-bottom: 1px solid var(--rule); padding: 6px 2px; }
+  .price-table tr:first-child td { font-size: 13pt; font-weight: 700; color: var(--primary); }
+  .price-table td.num { text-align: right; white-space: nowrap; font-weight: 600; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .terms { font-size: 9pt; color: #444; }
   .closing { text-align: center; font-weight: 700; margin: 26px 20px 8px; line-height: 2; }
@@ -211,7 +215,13 @@
   {% elif key == 'price' and doc.price %}
     <section class="price">
       <h3 class="section flush">Tour Price</h3>
-      <div><span class="amount">{{ doc.price.text }}</span>{% if doc.price.per %}<span class="per">{{ doc.price.per }}</span>{% endif %}</div>
+      {% if doc.price.rows|length > 1 %}
+        <table class="price-table">
+          <tbody>{% for label, value in doc.price.rows %}<tr><td>{{ label }}</td><td class="num">{{ value }}</td></tr>{% endfor %}</tbody>
+        </table>
+      {% else %}
+        <div><span class="amount">{{ doc.price.text }}</span>{% if doc.price.per %}<span class="per">{{ doc.price.per }}</span>{% endif %}</div>
+      {% endif %}
       {% if doc.price.note %}<p class="price-note">{{ doc.price.note }}</p>{% endif %}
     </section>
   {% elif key == 'inclusions' and (doc.inclusions or doc.exclusions) %}

@@ -120,6 +120,9 @@ class ItineraryEditor:
                                            note=t.note) for t in src.transports]
         self.db.add(v)
         self.db.flush()
+        # Pricing decisions (margins, overrides, extra lines) follow the content to the new version.
+        from app.services.pricing_service import PricingService  # local import: pricing builds on the itinerary service
+        PricingService(self.db, self.user).copy_sheet(src, v)
         return v
 
     # ================================================================= days

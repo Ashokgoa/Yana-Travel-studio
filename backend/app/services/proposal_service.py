@@ -100,6 +100,13 @@ class ProposalService:
         v = self.itineraries.current_version(it, version_number)
         ev = evaluate(self.db, v, it.enquiry_id)
         auto = ProposalBuilder(self.db, with_images=False).build(it, v, ProposalSettings(), self.branding())
+        from app.services.pricing_service import PricingService
+
+        cp = PricingService(self.db).customer_price(it, v)
+        if cp is None or cp.base.adult_twin is None:
+            pricing = {"status": "none", "text": None}
+        else:
+            pricing = {"status": "incomplete" if cp.is_incomplete else "ok", "text": auto.price["text"] if auto.price else None}
         return ProposalOptions(
             templates=[{"key": k, "label": k.title(), "description": TEMPLATE_INFO[k]} for k in TEMPLATES],
             sections=[{"key": k, "label": label} for k, label in SECTION_LABELS.items()],
@@ -108,7 +115,7 @@ class ProposalService:
             currency=ev.currency,
             defaults=dict(title=auto.title, intro=auto.intro, closing=auto.closing, inclusions=auto.inclusions,
                           exclusions=auto.exclusions, terms="\n".join(auto.terms)),
-            version_number=v.version_number, version_label=v.label, version_is_locked=v.is_locked,
+            version_number=v.version_number, version_label=v.label, version_is_locked=v.is_locked, pricing=pricing,
         )
 
     # ----------------------------------------------------------------- preview and export
@@ -134,14 +141,15 @@ class ProposalService:
             it = self.itineraries.get(itinerary_id)
             v = self.itineraries.current_version(it, v.version_number)
 
-        html = render_html(ProposalBuilder(self.db).build(it, v, data, self.branding()))
-        pdf = (self.renderer or get_pdf_renderer()).render(html)
+        doc = ProposalBuilder(self.db).build(it, v, data, self.branding())
+        pdf = (self.renderer or get_pdf_renderer()).render(render_html(doc))
 
         enquiry = self.db.scalar(select(Enquiry).options(joinedload(Enquiry.customer)).where(Enquiry.id == it.enquiry_id)) if it.enquiry_id else None
         filename = proposal_filename(data.title or default_title(it), enquiry.customer.name if enquiry else None, v.version_number)
         key = self.exports.save(f"itineraries/{uuid.uuid4().hex}.pdf", pdf)
         export = ProposalExport(itinerary_id=it.id, version_id=v.id, version_number=v.version_number, file_key=key, filename=filename,
-                                template=data.template, branding=data.branding, settings=data.model_dump(mode="json"),
+                                template=data.template, branding=data.branding,
+                                settings={**data.model_dump(mode="json"), "price_shown": doc.price if "price" in doc.sections else None},
                                 size_bytes=len(pdf), created_by_id=user.id)
         self.db.add(export)
         if enquiry and enquiry.status in ADVANCE_FROM:

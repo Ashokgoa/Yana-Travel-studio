@@ -13,6 +13,7 @@ import io
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 
@@ -357,12 +358,7 @@ class ProposalBuilder:
 
         summary = self._summary(v, ctx, days)
 
-        price = None
-        if settings.price_per_person is not None:
-            amount = f"{settings.price_per_person:,.0f}" if settings.price_per_person == settings.price_per_person.to_integral() else f"{settings.price_per_person:,.2f}"
-            price = dict(text=f"{settings.price_currency} {amount}", per="per person", note=settings.price_note)
-        else:
-            price = dict(text="Price on request", per=None, note=settings.price_note)
+        price = self._price(it, v, settings)
 
         inclusions = settings.inclusions if settings.inclusions is not None else self._auto_inclusions(v, ctx, road_mode, uses_train, has_arrival, has_departure, stars)
         exclusions = settings.exclusions if settings.exclusions is not None else list(branding.default_exclusions)
@@ -382,6 +378,37 @@ class ProposalBuilder:
             generated_on=_fmt_date(date.today()),
             footer_text=curated,
         )
+
+    # ------------------------------------------------------------------ price
+    def _price(self, it: Itinerary, v: ItineraryVersion, settings: ProposalSettings) -> dict:
+        """Selling prices only: the planner's typed price, else the pricing sheet, else "Price on request"."""
+        def money(currency: str, amount) -> str:
+            d = Decimal(str(amount))
+            return f"{currency} {d:,.0f}" if d == d.to_integral() else f"{currency} {d:,.2f}"
+
+        if settings.price_per_person is not None:
+            return dict(text=money(settings.price_currency, settings.price_per_person), per="per person", note=settings.price_note, rows=[])
+        from app.services.pricing_service import PricingService  # local import: pricing depends on itinerary services
+
+        cp = PricingService(self.db).customer_price(it, v)
+        if cp is None or cp.base.adult_twin is None:
+            return dict(text="Price on request", per=None, note=settings.price_note, rows=[])
+
+        def text(field: str) -> str | None:
+            base = getattr(cp.base, field)
+            if base is None:
+                return None
+            shown = []
+            if cp.show in ("base", "both"):
+                shown.append(money(cp.base.currency, base))
+            if cp.display and cp.show in ("display", "both") and getattr(cp.display, field) is not None:
+                shown.append(money(cp.display.currency, getattr(cp.display, field)))
+            return " · ".join(shown)
+
+        labels = [("adult_twin", "Per adult, sharing a twin / double room"), ("single_supplement", "Single room supplement"),
+                  ("child_with_bed", "Per child with a bed"), ("child_without_bed", "Per child without a bed")]
+        rows = [(label, t) for field, label in labels if (t := text(field))]
+        return dict(text=rows[0][1], per="per person", note=settings.price_note, rows=rows)
 
     # ------------------------------------------------------------------ days
     def _day(self, d, v: ItineraryVersion, ctx: dict, settings: ProposalSettings, req) -> DayBlock:

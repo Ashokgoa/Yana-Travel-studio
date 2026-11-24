@@ -135,3 +135,5 @@ class ProposalOptions(BaseModel):
     version_number: int
     version_label: str
     version_is_locked: bool
+    # Selling price from the pricing sheet: {status: none / ok / incomplete, text}. Never costs.
+    pricing: dict
