@@ -81,6 +81,16 @@ The polymorphic `media_links` lets one image serve many records without duplicat
 
 Inventory items are always **referenced**, never copied (PRD 14.4). Free-text fields on activities let planners rename or describe without forking inventory.
 
+## Supplier rates and quotes (Phase 8c) ✅ migration `0009`
+
+| Table / column | Key columns |
+|---|---|
+| `supplier_rates` | supplier_id → (CASCADE), service, category, basis, unit_cost, currency, valid_from, valid_to, notes, is_active |
+| `pricing_lines.quote` | JSON: supplier_id, supplier_rate_id, amount, currency, fx_rate, status (estimate / quoted / confirmed), reference |
+| `pricing_sheets.fx_rates` | JSON {"CHF": "1.05"}: 1 unit = x sheet currency, remembered for the sheet |
+
+Quotes on automatic lines are stored in `pricing_sheets.overrides[key].quote` (with the converted `unit_cost`).
+
 ## Templates, AI and backups (Phase 8)
 
 No new tables. Itinerary templates are `itineraries` rows with `kind = 'template'` and `enquiry_id` NULL (one locked version); they are excluded from the saved-itinerary list. AI suggestions are computed, never stored. Backups are zip files in `database/backups/` (git-ignored) holding `database/yana_studio.db`, `uploads/`, `exports/` and `manifest.json`.

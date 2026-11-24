@@ -14,6 +14,22 @@
 
 ---
 
+## Phase 8c – Itinerary first, supplier prices (2026-11-24, from YANA's testing feedback)
+
+YANA feedback: agents ask for an itinerary for N days first; costs depend on season and supplier, so budget comes later. Each cost should be priced from a chosen supplier, with the price editable, before YANA's markup is added. TourBrain (an Indian travel CRM) was reviewed for ideas: plan first, then the quote; supplier prices entered, not fetched; markup on cost.
+- **Budget is optional.** A missing budget no longer blocks *Generate*; it shows as a reminder instead. When something else is missing, the enquiry page lists it with a link to the right wizard step (previously only a hover tooltip).
+- **Supplier rate cards** (`supplier_rates`, migration `0009`): each supplier's prices per service, by category and basis, in any currency, optionally per season. Shown on the supplier page (add, edit, remove).
+- **Supplier price per cost line** (*Price* button on the pricing sheet):
+  - Pick a supplier and its rates pop up (season-valid ones first, others marked "Other season"). Click a rate to fill the price, then edit it if needed.
+  - Choose the currency (CHF, GBP… converted at a rate you type, remembered per sheet), the status (*Estimate / Quoted / Confirmed*) and a reference ("email 24 Nov").
+  - Optionally save a typed price to the supplier's rate card.
+  - Lines show the supplier (from inventory by default), the status badge and the original currency. A progress bar shows "N confirmed · N quoted · N estimates". Quotes carry over to new versions.
+- **Markup** is unchanged: margin % per category (plus adjustment per person, discount, rounding) on top of the supplier costs.
+- **Bug found by the browser test**: the supplier list in the price dialog asked for 200 suppliers per page (the API maximum is 100), so it stayed empty; fixed.
+- Tests: 4 backend (rate cards, quote in CHF with saved rate, status and progress, extra line saved to the rate card, quotes follow versions, generating without a budget), browser flow 11 checks, zero warnings.
+
+Next ideas (not built): 3★/4★/5★ options in one quote, sending the quote to the agent, requesting rates from suppliers by email.
+
 ## Phase 8 – AI assistant (offline first) and housekeeping (2026-11-24)
 
 YANA decision (2026-11-24): build both. AI is offline by default on the company laptop; the optional Claude connection stays **off** until IT approves it.

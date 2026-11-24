@@ -10,17 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { pricingApi } from "@/services/pricing";
 import { BASIS_LABELS, CATEGORIES, CATEGORY_LABELS, type ManualLine, type PricingBasis, type PricingCategory, type PricingLine, type PricingView } from "@/types/pricing";
+import { money, type Run } from "./pricing-parts-shared";
+import { QuoteDialog, StatusBadge } from "./quote-dialog";
 
-export type Run = (fn: () => Promise<PricingView>, success?: string) => void;
-
-export function money(amount: string | number | null | undefined, currency: string, decimals = 2): string {
-  if (amount === null || amount === undefined || amount === "") return "—";
-  try {
-    return new Intl.NumberFormat("en-GB", { style: "currency", currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(Number(amount));
-  } catch {
-    return `${amount} ${currency}`;
-  }
-}
+export { money, type Run };
 
 /** Number input that saves when the field is left or Enter is pressed (not on every keystroke). */
 export function NumberCell({ value, onCommit, label, placeholder, className, allowEmpty = false, step = "0.01" }: {
@@ -46,13 +39,24 @@ export function NumberCell({ value, onCommit, label, placeholder, className, all
 
 export function CostLinesCard({ p, id, version, run }: { p: PricingView; id: number; version?: number; run: Run }) {
   const [editing, setEditing] = useState<PricingLine | "new" | null>(null);
+  const [quoting, setQuoting] = useState<PricingLine | null>(null);
+  const prog = p.quote_progress;
   const groups = CATEGORIES.map((c) => ({ c, lines: p.lines.filter((l) => l.category === c) })).filter((g) => g.lines.length);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
         <div>
           <CardTitle className="text-base">Cost lines</CardTitle>
-          <p className="text-xs text-muted-foreground">From the itinerary and inventory (estimates unless verified). Change a cost or quantity to override it for this proposal.</p>
+          <p className="text-xs text-muted-foreground">From the itinerary and inventory (estimates until a supplier price is entered). Use <strong>Price</strong> to record what a supplier quoted.</p>
+          {prog.total > 0 && (
+            <div className="mt-2 max-w-md" aria-label="Supplier prices">
+              <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+                <span className="bg-emerald-500" style={{ width: `${(prog.confirmed / prog.total) * 100}%` }} />
+                <span className="bg-sky-400" style={{ width: `${(prog.quoted / prog.total) * 100}%` }} />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{prog.confirmed} confirmed · {prog.quoted} quoted · {prog.estimate} estimate{prog.estimate === 1 ? "" : "s"} (of {prog.total} costs)</p>
+            </div>
+          )}
         </div>
         <Button size="sm" variant="outline" onClick={() => setEditing("new")}><Plus aria-hidden /> Add cost line</Button>
       </CardHeader>
@@ -60,7 +64,7 @@ export function CostLinesCard({ p, id, version, run }: { p: PricingView; id: num
         <table className="w-full min-w-[720px] text-sm">
           <thead className="text-left text-xs text-muted-foreground">
             <tr><th className="py-1.5 pr-2 font-medium">Include</th><th className="pr-2 font-medium">Item</th><th className="pr-2 font-medium">Basis</th>
-              <th className="w-28 pr-2 text-right font-medium">Unit cost</th><th className="w-24 pr-2 text-right font-medium">Qty</th><th className="w-28 pr-2 text-right font-medium">Total</th><th className="w-16" /></tr>
+              <th className="w-28 pr-2 text-right font-medium">Unit cost</th><th className="w-24 pr-2 text-right font-medium">Qty</th><th className="w-28 pr-2 text-right font-medium">Total</th><th className="w-28" /></tr>
           </thead>
           {groups.map(({ c, lines }) => (
             <tbody key={c} className="border-t">
@@ -75,10 +79,15 @@ export function CostLinesCard({ p, id, version, run }: { p: PricingView; id: num
                   </td>
                   <td className="py-1 pr-2">
                     <span>{l.description}</span>{" "}
+                    <StatusBadge status={l.status} />{" "}
                     {l.unit_cost === null && <Badge variant="outline" className="border-amber-300 text-amber-800">No price</Badge>}
-                    {l.unit_cost !== null && l.is_estimate && <Badge variant="outline" className="text-muted-foreground">Estimate</Badge>}
                     {l.is_overridden && <Badge variant="outline" className="border-sky-300 text-sky-800" title={l.auto_unit_cost ? `Inventory: ${money(l.auto_unit_cost, p.currency)}` : "No inventory price"}>Edited</Badge>}
                     {l.manual_id && <Badge variant="outline">Added</Badge>}
+                    {(l.supplier_name || l.quote?.reference || (l.quote && l.quote.currency !== p.currency)) && (
+                      <span className="block text-xs text-muted-foreground">
+                        {[l.supplier_name, l.quote && l.quote.currency !== p.currency ? `${money(l.quote.amount, l.quote.currency)} @ ${l.quote.fx_rate}` : null, l.quote?.reference].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 pr-2 text-xs text-muted-foreground">{BASIS_LABELS[l.basis]}</td>
                   <td className="py-1 pr-2">
@@ -95,6 +104,7 @@ export function CostLinesCard({ p, id, version, run }: { p: PricingView; id: num
                   </td>
                   <td className="py-1 pr-2 text-right tabular-nums">{money(l.total, p.currency)}</td>
                   <td className="py-1 text-right whitespace-nowrap">
+                    <Button size="xs" variant="outline" className="mr-1" aria-label={`Supplier price for ${l.description}`} onClick={() => setQuoting(l)}>Price</Button>
                     {l.manual_id ? (
                       <>
                         <Button size="icon-xs" variant="ghost" aria-label={`Edit ${l.description}`} onClick={() => setEditing(l)}><Pencil aria-hidden /></Button>
@@ -114,6 +124,7 @@ export function CostLinesCard({ p, id, version, run }: { p: PricingView; id: num
           </tfoot>
         </table>
       </CardContent>
+      {quoting && <QuoteDialog line={quoting} p={p} id={id} version={version} run={run} onClose={() => setQuoting(null)} />}
       {editing && <LineDialog line={editing === "new" ? null : editing} onClose={() => setEditing(null)}
         onSave={(body) => run(() => editing === "new" ? pricingApi.addLine(id, body, version) : pricingApi.updateLine(id, editing.manual_id!, body, version), editing === "new" ? "Cost line added" : "Cost line updated")} />}
     </Card>

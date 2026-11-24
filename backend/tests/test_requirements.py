@@ -91,7 +91,9 @@ def test_draft_save_reports_missing_without_failing(planner_client, enquiry):
     assert r.status_code == 200
     body = r.json()
     assert body["exists"] and not body["is_complete"]
-    assert {"Arrival date", "Departure date", "Budget"} <= set(body["missing"])
+    assert {"Arrival date", "Departure date"} <= set(body["missing"])
+    # Itinerary first, budget later: a missing budget is a reminder, not a blocker.
+    assert "Budget" not in body["missing"] and any("No budget yet" in w for w in body["warnings"])
     # enquiry travellers updated from requirements
     assert planner_client.get(f"{API}/enquiries/{enquiry['id']}").json()["total_travellers"] == 2
 

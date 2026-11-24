@@ -45,7 +45,7 @@ function MissingRequirements({ enquiryId, missing, exists }: { enquiryId: number
       {exists && missing.length ? (
         <ul className="mt-1 list-disc pl-5">{missing.map((m) => <li key={m}>{m}</li>)}</ul>
       ) : (
-        <p className="mt-1">Dates, arrival and departure airports or cities, at least one destination, and a budget.</p>
+        <p className="mt-1">Dates, arrival and departure airports or cities, and at least one destination. A budget is optional and can be added later.</p>
       )}
       <Link href={`/crm/enquiries/${enquiryId}/requirements${first ? `?step=${stepFor(first)}` : ""}`} className={cn(buttonVariants({ size: "sm", variant: "outline" }), "mt-3 bg-background")}>
         {first ? `Add ${first.toLowerCase()}` : "Capture requirements"}

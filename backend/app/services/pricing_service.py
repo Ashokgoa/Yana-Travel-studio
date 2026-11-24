@@ -17,10 +17,13 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.errors import DomainError
 from app.engines.pricing import CATEGORIES, CostLine, PricingInput, StayRate, convert, line_group_total, price
-from app.models import AppSetting, Attraction, City, Hotel, Itinerary, ItineraryVersion, PricingLine, PricingSheet, Restaurant, User, Vehicle
+from app.models import (
+    AppSetting, Attraction, City, Hotel, Itinerary, ItineraryVersion, PricingLine, PricingSheet, Restaurant, Supplier, SupplierRate, User,
+    Vehicle,
+)
 from app.schemas.pricing import (
     CATEGORY_LABELS, CategoryOut, CustomerPrice, LineOut, LineOverride, ManualLineIn, PricingDefaults, PricingSettingsUpdate,
-    PricingView, Prices, StayRateOut, StayRateOverride,
+    PricingView, Prices, QuoteIn, StayRateOut, StayRateOverride,
 )
 from app.services.itinerary_service import ItineraryService
 from app.services.requirement_service import RequirementService
@@ -31,6 +34,10 @@ MANUAL_PREFIX = "manual:"
 
 def _s(v: Decimal | None) -> str | None:
     return None if v is None else str(v)
+
+
+def _cents(v: Decimal | None) -> Decimal | None:
+    return None if v is None else v.quantize(Decimal("0.01"))
 
 
 def _dec(v) -> Decimal | None:
@@ -69,7 +76,7 @@ class PricingService:
             d = self.defaults()
             sheet = PricingSheet(version_id=v.id, margins={k: str(x) for k, x in d.margins.items()}, rounding=d.rounding,
                                  child_bed_pct=d.child_bed_pct, display_currency=d.display_currency, exchange_rate=d.exchange_rate,
-                                 overrides={}, stay_overrides={}, updated_by_id=self.user.id if self.user else None)
+                                 overrides={}, stay_overrides={}, fx_rates={}, updated_by_id=self.user.id if self.user else None)
             self.db.add(sheet)
             self.db.commit()
             sheet = self.db.scalar(select(PricingSheet).options(selectinload(PricingSheet.lines)).where(PricingSheet.version_id == v.id))
@@ -86,10 +93,10 @@ class PricingService:
             adults=sheet.adults, children_with_bed=sheet.children_with_bed, children_without_bed=sheet.children_without_bed,
             singles=sheet.singles, overrides=dict(sheet.overrides), stay_overrides=dict(sheet.stay_overrides),
             display_currency=sheet.display_currency, exchange_rate=sheet.exchange_rate, pdf_currency=sheet.pdf_currency,
-            notes=sheet.notes, updated_by_id=sheet.updated_by_id,
+            notes=sheet.notes, updated_by_id=sheet.updated_by_id, fx_rates=dict(sheet.fx_rates or {}),
         )
         new.lines = [PricingLine(category=l.category, basis=l.basis, description=l.description, unit_cost=l.unit_cost, quantity=l.quantity,
-                                 is_estimate=l.is_estimate, supplier_id=l.supplier_id, sort_order=l.sort_order) for l in sheet.lines]
+                                 is_estimate=l.is_estimate, supplier_id=l.supplier_id, sort_order=l.sort_order, quote=l.quote) for l in sheet.lines]
         self.db.add(new)
 
     # ------------------------------------------------------------------ automatic lines
@@ -127,7 +134,7 @@ class PricingService:
                 verified = bool(rt and rt.price_is_verified)
                 lines.append(CostLine(f"hotel:{s.city_id}:{h.id}:{r.get('room_type_id') or r.get('label')}", "hotel", "per_room",
                                       f"{h.name}, {city}: {r.get('label', 'Room')} × {r.get('count', 1)}, {s.nights} night{'s' if s.nights != 1 else ''}",
-                                      unit, Decimal(r.get("count", 1) * s.nights), is_estimate=not verified))
+                                      unit, Decimal(r.get("count", 1) * s.nights), is_estimate=not verified, supplier_id=h.supplier_id))
 
             def rate(rt) -> Decimal | None:
                 seasonal = next((x for x in h.rates if x.room_type_id == rt.id and x.valid_from <= check_in <= x.valid_to), None)
@@ -148,17 +155,17 @@ class PricingService:
         if vehicle:
             if vehicle.price_per_day is not None:
                 lines.append(CostLine(f"vehicle:{vehicle.id}:day", "transport", "per_day", f"{vehicle.name}, {v.total_days} days",
-                                      money(vehicle.price_per_day, vehicle.currency, vehicle.name), Decimal(v.total_days), not vehicle.price_is_verified))
+                                      money(vehicle.price_per_day, vehicle.currency, vehicle.name), Decimal(v.total_days), not vehicle.price_is_verified, supplier_id=vehicle.supplier_id))
                 if vehicle.driver_cost_per_day:
                     lines.append(CostLine(f"vehicle:{vehicle.id}:driver", "transport", "per_day", f"Driver for {vehicle.name}, {v.total_days} days",
-                                          money(vehicle.driver_cost_per_day, vehicle.currency, "Driver"), Decimal(v.total_days), not vehicle.price_is_verified))
+                                          money(vehicle.driver_cost_per_day, vehicle.currency, "Driver"), Decimal(v.total_days), not vehicle.price_is_verified, supplier_id=vehicle.supplier_id))
             elif vehicle.price_per_km is not None:
                 km = sum(t.distance_km or 0 for t in v.transports if t.mode != "train")
                 lines.append(CostLine(f"vehicle:{vehicle.id}:km", "transport", "per_km", f"{vehicle.name}, about {km} km",
-                                      money(vehicle.price_per_km, vehicle.currency, vehicle.name), Decimal(km), True))
+                                      money(vehicle.price_per_km, vehicle.currency, vehicle.name), Decimal(km), True, supplier_id=vehicle.supplier_id))
             else:
                 lines.append(CostLine(f"vehicle:{vehicle.id}:day", "transport", "per_day", f"{vehicle.name}, {v.total_days} days (no price in inventory)",
-                                      None, Decimal(v.total_days)))
+                                      None, Decimal(v.total_days), supplier_id=vehicle.supplier_id))
         for t in v.transports:
             if t.mode == "train":
                 lines.append(CostLine(f"train:{t.from_city_id}:{t.to_city_id}", "transport", "per_person",
@@ -171,7 +178,7 @@ class PricingService:
             a = attractions.get(aid)
             if a and a.ticket_required:
                 lines.append(CostLine(f"ticket:{aid}", "sightseeing", "per_person", f"{a.name} tickets",
-                                      money(a.ticket_price, a.currency, a.name), Decimal(n), not a.price_is_verified))
+                                      money(a.ticket_price, a.currency, a.name), Decimal(n), not a.price_is_verified, supplier_id=a.supplier_id))
 
         # Meals at restaurants (per person per meal) and at hotels (no price in inventory).
         meals = Counter(m.restaurant_id for d in days for m in d.meals if m.arrangement == "restaurant" and m.restaurant_id)
@@ -180,7 +187,7 @@ class PricingService:
             r = restaurants.get(rid)
             if r:
                 lines.append(CostLine(f"meal:{rid}", "meal", "per_person", f"{r.name}: {n} meal{'s' if n != 1 else ''}",
-                                      money(r.avg_price_per_person, r.currency, r.name), Decimal(n), not getattr(r, "price_is_verified", False)))
+                                      money(r.avg_price_per_person, r.currency, r.name), Decimal(n), not getattr(r, "price_is_verified", False), supplier_id=r.supplier_id))
         hotel_meals = Counter(m.meal for d in days for m in d.meals if m.arrangement == "hotel" and m.meal != "breakfast")
         for meal, n in sorted(hotel_meals.items()):
             lines.append(CostLine(f"hotelmeal:{meal}", "meal", "per_person", f"{meal.title()} at the hotel: {n}", None, Decimal(n)))
@@ -205,6 +212,13 @@ class PricingService:
         singles = sheet.singles if sheet.singles is not None else trav["singles"]
         pax = adults + cwb + cnb
 
+        supplier_names = {sid: n for sid, n in self.db.execute(select(Supplier.id, Supplier.name))}
+
+        def status_of(quote: dict | None, line: CostLine) -> str:
+            if quote and quote.get("status"):
+                return quote["status"]
+            return "estimate" if line.unit_cost is None or line.is_estimate else "quoted"
+
         for line in auto:
             o = sheet.overrides.get(line.key) or {}
             original = line.unit_cost
@@ -214,17 +228,23 @@ class PricingService:
                 line.quantity = Decimal(str(o["quantity"]))
             if "included" in o:
                 line.included = bool(o["included"])
+            quote = o.get("quote")
+            if quote:
+                line.is_estimate = quote.get("status") == "estimate"
+            supplier_id = (quote or {}).get("supplier_id") or line.supplier_id
             engine_lines.append(line)
             out_lines.append(LineOut(key=line.key, category=line.category, basis=line.basis, description=line.description,
-                                     unit_cost=_s(line.unit_cost), quantity=str(line.quantity), total=_s(line_group_total(line, pax)),
+                                     unit_cost=_s(line.unit_cost), quantity=str(line.quantity), total=_s(_cents(line_group_total(line, pax))),
                                      is_estimate=line.is_estimate and "unit_cost" not in o, included=line.included,
-                                     is_overridden=bool(o), auto_unit_cost=_s(original)))
+                                     is_overridden=bool(o), auto_unit_cost=_s(original), status=status_of(quote, line),
+                                     supplier_id=supplier_id, supplier_name=supplier_names.get(supplier_id), quote=quote))
         for m in sheet.lines:
             line = CostLine(f"{MANUAL_PREFIX}{m.id}", m.category, m.basis, m.description, _dec(m.unit_cost), _dec(m.quantity) or Decimal(0), m.is_estimate)
             engine_lines.append(line)
             out_lines.append(LineOut(key=line.key, manual_id=m.id, category=m.category, basis=m.basis, description=m.description,
-                                     unit_cost=_s(m.unit_cost), quantity=str(m.quantity), total=_s(line_group_total(line, pax)),
-                                     is_estimate=m.is_estimate, included=True))
+                                     unit_cost=_s(_dec(m.unit_cost)), quantity=str(m.quantity), total=_s(_cents(line_group_total(line, pax))),
+                                     is_estimate=m.is_estimate, included=True, status=status_of(m.quote, line),
+                                     supplier_id=m.supplier_id, supplier_name=supplier_names.get(m.supplier_id), quote=m.quote))
         stay_out = []
         for s in stays:
             o = sheet.stay_overrides.get(s.key) or {}
@@ -278,7 +298,15 @@ class PricingService:
             margin_on_revenue_pct=_s(result.margin_on_revenue_pct),
             budget_per_person=_s(req.budget_per_person) if req and req.budget_per_person else None,
             warnings=result.warnings, margins_reviewed=self.defaults().margins_reviewed,
+            trip_start=v.start_date, fx_rates={k: str(x) for k, x in (sheet.fx_rates or {}).items()},
+            quote_progress=self._progress(lines),
         )
+
+    @staticmethod
+    def _progress(lines: list[LineOut]) -> dict[str, int]:
+        included = [l for l in lines if l.included]
+        counts = {k: sum(1 for l in included if l.status == k) for k in ("confirmed", "quoted", "estimate")}
+        return {**counts, "total": len(included)}
 
     def customer_price(self, it: Itinerary, v: ItineraryVersion) -> CustomerPrice | None:
         """Selling prices for proposals, or None if this version has not been priced yet."""
@@ -361,5 +389,55 @@ class PricingService:
     def delete_line(self, itinerary_id: int, line_id: int, version_number: int | None = None) -> PricingView:
         line = self._manual(itinerary_id, line_id, version_number)
         self.db.delete(line)
+        self.db.commit()
+        return self.view(itinerary_id, version_number)
+
+    # ------------------------------------------------------------------ supplier quotes (Phase 8c)
+    def quote(self, itinerary_id: int, body: QuoteIn, version_number: int | None = None) -> PricingView:
+        """Record a supplier's price for one line; converts to the sheet currency with the given exchange rate."""
+        it, v = self._version(itinerary_id, version_number)
+        sheet = self._sheet(v)
+        if body.supplier_id is not None and self.db.get(Supplier, body.supplier_id) is None:
+            raise DomainError("Supplier not found.", status.HTTP_400_BAD_REQUEST, "invalid_supplier")
+        if body.supplier_rate_id is not None and self.db.get(SupplierRate, body.supplier_rate_id) is None:
+            raise DomainError("Supplier rate not found.", status.HTTP_400_BAD_REQUEST, "invalid_rate")
+        foreign = body.currency != sheet.currency
+        fx = Decimal(1)
+        if foreign:
+            fx = body.fx_rate or _dec((sheet.fx_rates or {}).get(body.currency))
+            if not fx:
+                raise DomainError(f"Enter the exchange rate: 1 {body.currency} = ? {sheet.currency}.", status.HTTP_400_BAD_REQUEST, "fx_required")
+            sheet.fx_rates = {**(sheet.fx_rates or {}), body.currency: str(fx)}
+        unit = (body.amount * fx).quantize(Decimal("0.01"))
+        quote = {"supplier_id": body.supplier_id, "supplier_rate_id": body.supplier_rate_id, "amount": str(body.amount), "currency": body.currency,
+                 "fx_rate": str(fx) if foreign else None, "status": body.status, "reference": body.reference}
+        if body.key.startswith(MANUAL_PREFIX):
+            line = next((l for l in sheet.lines if f"{MANUAL_PREFIX}{l.id}" == body.key), None)
+            if line is None:
+                raise DomainError("Cost line not found.", status.HTTP_404_NOT_FOUND, "not_found")
+            line.unit_cost, line.supplier_id, line.quote, line.is_estimate = unit, body.supplier_id, quote, body.status == "estimate"
+            category, basis = line.category, line.basis
+        else:
+            auto = {l.key: l for l in self._auto(it, v, sheet.currency)[0]}
+            if body.key not in auto:
+                raise DomainError("Cost line not found.", status.HTTP_404_NOT_FOUND, "not_found")
+            sheet.overrides = {**sheet.overrides, body.key: {**(sheet.overrides.get(body.key) or {}), "unit_cost": str(unit), "quote": quote}}
+            category, basis = auto[body.key].category, auto[body.key].basis
+        if body.save_as_rate and body.supplier_id and body.supplier_rate_id is None:
+            self.db.add(SupplierRate(supplier_id=body.supplier_id, service=(body.service or body.key)[:200], category=category, basis=basis,
+                                     unit_cost=body.amount, currency=body.currency, notes=body.reference))
+        sheet.updated_by_id = self.user.id if self.user else None
+        self.db.commit()
+        return self.view(itinerary_id, version_number)
+
+    def clear_quote(self, itinerary_id: int, key: str, version_number: int | None = None) -> PricingView:
+        """Back to the inventory estimate (automatic lines) or an unquoted line (extra lines)."""
+        if not key.startswith(MANUAL_PREFIX):
+            return self.reset_override(itinerary_id, key, version_number)
+        _, v = self._version(itinerary_id, version_number)
+        line = next((l for l in self._sheet(v).lines if f"{MANUAL_PREFIX}{l.id}" == key), None)
+        if line is None:
+            raise DomainError("Cost line not found.", status.HTTP_404_NOT_FOUND, "not_found")
+        line.quote, line.is_estimate = None, True
         self.db.commit()
         return self.view(itinerary_id, version_number)

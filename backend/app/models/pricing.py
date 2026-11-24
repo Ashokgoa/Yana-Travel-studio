@@ -7,9 +7,10 @@ traveller split, overrides of automatic lines (by stable key), room-rate
 overrides, extra manual lines and the optional display currency.
 """
 
+from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import JSON, Boolean, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import JSON, Boolean, Date, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base, IdMixin, TimestampMixin
@@ -36,6 +37,8 @@ class PricingSheet(IdMixin, TimestampMixin, Base):
     exchange_rate: Mapped[Decimal | None] = mapped_column(Numeric(14, 6))  # 1 base = rate display
     pdf_currency: Mapped[str] = mapped_column(String(10), default="base", nullable=False)  # base / display / both
     notes: Mapped[str | None] = mapped_column(Text)
+    # Exchange rates used for supplier quotes in other currencies: {"CHF": "1.06"} (1 CHF = 1.06 base).
+    fx_rates: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     updated_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
     lines: Mapped[list["PricingLine"]] = relationship(back_populates="sheet", cascade="all, delete-orphan", order_by="PricingLine.sort_order")
@@ -55,5 +58,24 @@ class PricingLine(IdMixin, TimestampMixin, Base):
     is_estimate: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     supplier_id: Mapped[int | None] = mapped_column(ForeignKey("suppliers.id", ondelete="SET NULL"))
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Supplier quote (Phase 8c): what the supplier quoted, in their currency, and how sure it is.
+    quote: Mapped[dict | None] = mapped_column(JSON)
 
     sheet: Mapped[PricingSheet] = relationship(back_populates="lines")
+
+
+class SupplierRate(IdMixin, TimestampMixin, Base):
+    """A supplier's price for one service (rate card), optionally for a season (valid from / to)."""
+
+    __tablename__ = "supplier_rates"
+
+    supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False, index=True)
+    service: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    basis: Mapped[str] = mapped_column(String(20), nullable=False)
+    unit_cost: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), default="EUR", nullable=False)
+    valid_from: Mapped[date | None] = mapped_column(Date)
+    valid_to: Mapped[date | None] = mapped_column(Date)
+    notes: Mapped[str | None] = mapped_column(String(500))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

@@ -183,6 +183,18 @@ Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working 
 
 Every response re-runs the live checks and cost estimate.
 
+### Supplier prices (Phase 8c)
+
+| Method | Path | Description |
+|---|---|---|
+| GET / POST | `/suppliers/{id}/rates` | A supplier's rate card / add a rate |
+| PUT / DELETE | `/supplier-rates/{rate_id}` | Edit / delete a rate |
+| GET | `/supplier-rates?category=&on=&supplier_id=` | Active rates; `valid_on_trip` for the date, valid ones first |
+| PUT | `/itineraries/{id}/pricing/quote?version=` `{key, supplier_id?, supplier_rate_id?, amount, currency, fx_rate?, status, reference?, save_as_rate?, service?}` | Supplier price for a cost line (converted to the sheet currency); 400 `fx_required` without an exchange rate |
+| DELETE | `/itineraries/{id}/pricing/quote?key=` | Remove the supplier price |
+
+`PricingView` lines now include `status`, `supplier_id`, `supplier_name` and `quote`. The view also has `trip_start`, `fx_rates` and `quote_progress`. A missing budget is a requirement warning, not an item in `missing`.
+
 ### AI assistant (Phase 8a)
 
 | Method | Path | Description |

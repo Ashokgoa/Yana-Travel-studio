@@ -43,6 +43,7 @@ class CostLine:
     quantity: Decimal
     is_estimate: bool = True
     included: bool = True
+    supplier_id: int | None = None  # inventory supplier of the item (hotel, vehicle...), if known
 
     @property
     def total(self) -> Decimal | None:

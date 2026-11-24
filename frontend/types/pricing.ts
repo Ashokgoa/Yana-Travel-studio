@@ -22,7 +22,24 @@ export type PricingLine = {
   included: boolean;
   is_overridden: boolean;
   auto_unit_cost: string | null;
+  status: QuoteStatus;
+  supplier_id: number | null;
+  supplier_name: string | null;
+  quote: { supplier_id: number | null; supplier_rate_id: number | null; amount: string; currency: string; fx_rate: string | null; status: QuoteStatus; reference: string | null } | null;
 };
+
+export type QuoteStatus = "estimate" | "quoted" | "confirmed";
+
+export type QuoteInput = {
+  key: string; supplier_id: number | null; supplier_rate_id: number | null; amount: string; currency: string; fx_rate: string | null;
+  status: QuoteStatus; reference: string | null; save_as_rate?: boolean; service?: string | null;
+};
+
+export type SupplierRate = {
+  id: number; supplier_id: number; supplier_name: string | null; service: string; category: PricingCategory; basis: PricingBasis;
+  unit_cost: string; currency: string; valid_from: string | null; valid_to: string | null; notes: string | null; is_active: boolean; valid_on_trip: boolean | null;
+};
+export type SupplierRateInput = Omit<SupplierRate, "id" | "supplier_id" | "supplier_name" | "valid_on_trip">;
 
 export type StayRate = { key: string; label: string; nights: number; double_rate: string | null; single_rate: string | null; single_is_estimate: boolean; is_overridden: boolean };
 export type Prices = { currency: string; adult_twin: string | null; single_supplement: string | null; child_with_bed: string | null; child_without_bed: string | null };
@@ -58,6 +75,9 @@ export type PricingView = {
   budget_per_person: string | null;
   warnings: string[];
   margins_reviewed: boolean;
+  trip_start: string;
+  fx_rates: Record<string, string>;
+  quote_progress: { confirmed: number; quoted: number; estimate: number; total: number };
 };
 
 export type PricingUpdate = Partial<{

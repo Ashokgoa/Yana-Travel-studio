@@ -139,3 +139,11 @@ def test_must_visits_that_cannot_fit_are_explained(planner_client, enquiry, worl
 
 def test_itinerary_not_found(planner_client):
     assert planner_client.get(f"{API}/itineraries/999999").status_code == 404
+
+
+def test_generation_works_without_a_budget(planner_client, enquiry, world):  # noqa: F811
+    body = _requirements(world)
+    body.pop("budget_per_person")
+    assert planner_client.put(f"{API}/enquiries/{enquiry['id']}/requirements", json=body).json()["is_complete"]
+    r = planner_client.post(f"{API}/enquiries/{enquiry['id']}/itineraries/generate", json={"strategies": ["classic"]})
+    assert r.status_code == 201, r.text

@@ -159,10 +159,11 @@ class RequirementService:
             missing.append("Departure airport / city")
         if not visiting:
             missing.append("At least one destination to visit")
-        if r.budget_per_person is None and r.budget_total is None:
-            missing.append("Budget")
 
         warnings = []
+        # Itinerary first, budget later (YANA, 2026-11-24): costs come from supplier quotes afterwards.
+        if r.budget_per_person is None and r.budget_total is None:
+            warnings.append("No budget yet: itineraries can be generated; add a budget later to compare costs against it.")
         mandatory = [d for d in r.destinations if d.preference == "mandatory"]
         if nights is not None and nights == 0:
             warnings.append("Arrival and departure are on the same day: there are no overnight stays.")

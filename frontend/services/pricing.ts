@@ -1,5 +1,5 @@
 import { api, withQuery } from "@/services/api";
-import type { ManualLine, PricingDefaults, PricingUpdate, PricingView } from "@/types/pricing";
+import type { ManualLine, PricingDefaults, PricingUpdate, PricingView, QuoteInput, SupplierRate, SupplierRateInput } from "@/types/pricing";
 
 const base = (id: number, version?: number, path = "") => withQuery(`/itineraries/${id}/pricing${path}`, version ? { version } : undefined);
 
@@ -15,6 +15,13 @@ export const pricingApi = {
   addLine: (id: number, body: ManualLine, version?: number) => api.post<PricingView>(base(id, version, "/lines"), body),
   updateLine: (id: number, lineId: number, body: ManualLine, version?: number) => api.put<PricingView>(base(id, version, `/lines/${lineId}`), body),
   deleteLine: (id: number, lineId: number, version?: number) => api.delete<PricingView>(base(id, version, `/lines/${lineId}`)),
+  quote: (id: number, body: QuoteInput, version?: number) => api.put<PricingView>(base(id, version, "/quote"), body),
+  clearQuote: (id: number, key: string, version?: number) => api.delete<PricingView>(withQuery(`/itineraries/${id}/pricing/quote`, { key, version })),
+  rates: (params: { category?: string; on?: string; supplier_id?: number }) => api.get<SupplierRate[]>("/supplier-rates", params),
+  supplierRates: (supplierId: number) => api.get<SupplierRate[]>(`/suppliers/${supplierId}/rates`),
+  addRate: (supplierId: number, body: SupplierRateInput) => api.post<SupplierRate>(`/suppliers/${supplierId}/rates`, body),
+  updateRate: (rateId: number, body: SupplierRateInput) => api.put<SupplierRate>(`/supplier-rates/${rateId}`, body),
+  deleteRate: (rateId: number) => api.delete<void>(`/supplier-rates/${rateId}`),
   defaults: () => api.get<PricingDefaults>("/settings/pricing"),
   saveDefaults: (body: PricingDefaults) => api.put<PricingDefaults>("/settings/pricing", body),
 };

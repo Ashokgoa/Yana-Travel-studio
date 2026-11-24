@@ -25,7 +25,7 @@ from app.models.itinerary import (
     ItineraryVersion,
 )
 from app.models.media import Media, MediaLink
-from app.models.pricing import PricingLine, PricingSheet
+from app.models.pricing import PricingLine, PricingSheet, SupplierRate
 from app.models.proposal import ProposalExport
 from app.models.requirements import EnquiryDestination, EnquiryRequirement
 from app.models.setting import AppSetting
@@ -61,6 +61,7 @@ __all__ = [
     "Restaurant",
     "Role",
     "Supplier",
+    "SupplierRate",
     "TravelAgent",
     "User",
     "Vehicle",

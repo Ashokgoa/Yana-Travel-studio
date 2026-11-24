@@ -46,7 +46,7 @@ After creating an enquiry you go straight to **Customer requirements** (also rea
 5. **Hotels**: category, location, breakfast, and rooms (shows whether the beds fit everyone).
 6. **Food**: dietary preferences and which meals to include.
 7. **Transport**: vehicle types (several for mixed arrangements), seats, luggage, transfers.
-8. **Budget**: per person or group total (the other is shown for reference), currency, flexibility, class.
+8. **Budget** (optional): per person or group total (the other is shown for reference), currency, flexibility, class. You can generate itineraries without a budget and price them with supplier quotes afterwards.
 9. **Notes**: customer requests and internal staff-only notes.
 
 **Read from email**: paste the agent's email or notes and click *Read*.
@@ -113,6 +113,13 @@ Open an itinerary and click **Pricing**. The **Pricing & Costing** menu also lis
   - *Estimate* means an unverified inventory price; *No price* means the cost is unknown.
   - Type a new cost or quantity to override it for this proposal (*Edited*). The ↺ button goes back to inventory values. Untick a line to leave it out.
   - **Add cost line** adds guides, tolls, parking or extras. *Per person* counts once per traveller; the other bases are shared by the group.
+- **Supplier prices**: click **Price** on a line to record what a supplier quoted.
+  - Choose the supplier and their rates pop up (rates for the trip's season first); click one to fill the price, and change it if needed.
+  - Pick the currency; for CHF, GBP and others, type the exchange rate (1 CHF = … EUR). It's remembered for this sheet.
+  - Set the status: *Quoted* when you have an offer, *Confirmed* when it's agreed. Add a reference such as "email 24 Nov".
+  - Tick *Save to the supplier's rate card* to reuse a typed price next time.
+  - The bar above the lines shows how many costs are confirmed, quoted or still estimates. Your margins are added on top.
+- **Rate cards**: open a supplier (*Suppliers*) to keep their prices per service and season (e.g. "49-seat coach, per day, CHF 950, 1 May – 30 Sep").
 - **Room rates**: the double and single rates per night used for the per-person prices. If a hotel has no single room, the double rate is used (*Single = double*); enter the real single rate if you know it.
 - **Margins** are a percentage added on top of cost, for each category. Under each category you see its cost → selling per person.
 - **Adjustments**: discount %, a fixed amount per person (+ or −), rounding up (e.g. to the nearest 10), and the child-with-bed hotel share.

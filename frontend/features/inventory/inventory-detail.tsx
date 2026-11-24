@@ -13,6 +13,7 @@ import { ActiveBadge } from "@/components/common/status-badge";
 import { useAuth } from "@/features/auth/auth-provider";
 import { DemoBadge, TriState } from "@/features/inventory/badges";
 import { HotelRooms } from "@/features/inventory/hotel-rooms";
+import { SupplierRates } from "@/features/pricing/supplier-rates";
 import { ImageGallery } from "@/features/media/image-gallery";
 import { InventoryFormDialog } from "@/features/inventory/inventory-form-dialog";
 import { Thumb } from "@/features/inventory/inventory-list";
@@ -158,6 +159,7 @@ export function InventoryDetail({ resource, id }: { resource: ResourceKey; id: n
             </Card>
           ))}
           {resource === "hotels" && <HotelRooms hotel={item as Hotel} canEdit={isAdmin} />}
+          {resource === "suppliers" && <SupplierRates supplierId={item.id} supplierType={String(item.supplier_type)} />}
         </div>
 
         <div className="space-y-6">
