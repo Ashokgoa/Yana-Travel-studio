@@ -66,6 +66,18 @@ Each card shows the route map, days, countries, average hotel stars and an **est
 
 Important: must-visit places are never dropped. If they cannot fit, the app explains why instead of generating. Prices and availability are estimates from inventory, not confirmed bookings. **Regenerate** creates a new set and keeps the old ones (see *Itinerary Builder → Saved Itineraries*). Editing an itinerary comes in the next phase.
 
+## Editing an itinerary (Itinerary builder)
+
+Open an itinerary and click **Edit itinerary**. Generated versions are kept unchanged, so click **Start editing** to work on a copy.
+
+- **Days**: the pencil renames a day; **+** adds a day after it; the copy icon duplicates it; the bin removes it (not the arrival or departure day). Nights, dates, hotels and travel legs adjust automatically.
+- **Activities**: drag by the handle, or use ↑/↓ (at the top or bottom of a day they move to the previous or next day). Change the time of day from the dropdown; the pencil edits the wording; the bin removes it. **Add sightseeing or free time** offers the sightseeing for that day's city from inventory (it shows if something is already on another day), plus free time or a custom activity.
+- **Meals**: for each day choose *At the hotel*, a restaurant in that city (✓ means the customer's dietary need is verified there, ⚠ means it isn't), *Own arrangement*, or *Not included*.
+- **Hotels**: **Replace** shows the hotels in that city with stars and a "from" price. The previous hotel is kept as an alternative.
+- **Transport**: choose the vehicle for the trip and switch any leg to train.
+- **Checks** (right-hand side) are re-done after every change: duplicates, closed days, too-busy days, unverified diets, meals to arrange, hotel category, vehicle size and countries, long drives, over budget. The **estimated cost** updates too.
+- **Save version** gives the current state a name (e.g. "Hotel upgrades") and keeps it read-only. **Versions** lists all versions: *View* any of them, *Restore* one as a new draft (nothing is overwritten), or compare two to see what changed. **Duplicate** copies the whole itinerary.
+
 ## Destination inventory and suppliers
 
 Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation) and **Suppliers**, everyone can search and view. **Only administrators** can add, edit, deactivate or reactivate.

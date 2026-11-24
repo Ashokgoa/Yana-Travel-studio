@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, BedDouble, Bus, Camera, Info, LogIn, LogOut, Plane, Sun, TrainFront, Utensils } from "lucide-react";
+import { AlertTriangle, BedDouble, Bus, Camera, History, Info, LogIn, LogOut, PencilLine, Plane, Sun, TrainFront, Utensils } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
 import { ErrorState, TableSkeleton } from "@/components/common/states";
@@ -177,8 +178,11 @@ function CostsCard({ it }: { it: ItineraryDetail }) {
   );
 }
 
-export function ItineraryDetailView({ id }: { id: number }) {
-  const q = useQuery({ queryKey: ["itineraries", "detail", id], queryFn: () => itinerariesApi.get(id) });
+export function ItineraryDetailView({ id, version }: { id: number; version?: number }) {
+  const q = useQuery({
+    queryKey: version ? ["itineraries", "detail", id, "v", version] : ["itineraries", "detail", id],
+    queryFn: () => itinerariesApi.get(id, version),
+  });
   if (q.isPending) return <TableSkeleton rows={8} />;
   if (q.isError) return <ErrorState message={q.error.message} onRetry={() => q.refetch()} />;
   const it = q.data;
@@ -191,7 +195,19 @@ export function ItineraryDetailView({ id }: { id: number }) {
         back={it.enquiry_id ? { href: `/crm/enquiries/${it.enquiry_id}`, label: it.enquiry_reference ?? "Enquiry" } : { href: "/itineraries", label: "Saved itineraries" }}
         title={<span className="flex flex-wrap items-center gap-3">{it.title.split(":")[0]} <StrategyBadge strategy={it.strategy} /></span>}
         description={`${it.customer_name ?? ""} · ${formatDate(it.start_date)} · ${it.total_days} days / ${it.total_nights} nights · Version ${it.version_number} (${it.version_label})`}
+        actions={
+          <Link href={`/itineraries/${it.id}/edit`} className={buttonVariants()}>
+            <PencilLine aria-hidden /> {it.is_locked && it.version_number === it.latest_version_number ? "Edit itinerary" : "Open builder"}
+          </Link>
+        }
       />
+      {it.version_number !== it.latest_version_number && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border bg-muted/50 px-4 py-3 text-sm">
+          <History className="size-4 text-muted-foreground" aria-hidden />
+          <span className="flex-1">You are viewing an earlier version (v{it.version_number}: {it.version_label}). The latest is v{it.latest_version_number}.</span>
+          <Link href={`/itineraries/${it.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>View latest</Link>
+        </div>
+      )}
 
       <div className="mb-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Card>

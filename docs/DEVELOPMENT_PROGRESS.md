@@ -7,14 +7,14 @@
 | 2 | Destination inventory & images | ✅ Complete (2026-11-24) |
 | 3 | Customer requirement capture | ✅ Complete (2026-11-24) |
 | 4 | Itinerary engine | ✅ Complete (2026-11-24) |
-| 5 | Visual itinerary builder | 🔨 In progress: backend done (2026-11-24); editor screens next |
-| 6 | PDF designer | Planned |
+| 5 | Visual itinerary builder | ✅ Complete (2026-11-24), awaiting approval |
+| 6 | PDF designer | ⏳ Next |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
 
 ---
 
-## Phase 5 – Visual itinerary builder (in progress)
+## Phase 5 – Visual itinerary builder (2026-11-24)
 
 ### Done: backend (5a)
 - **Versioning**: generated versions are read-only snapshots (migration `0006` locks existing ones). *Start editing* clones the latest saved version into a working copy; *Save version* (label + notes) locks it; *Restore* copies any earlier version into a new working copy (an open draft is auto-saved first, so nothing is lost); *Compare* lists the differences in plain English (days, nights per city, hotels, sightseeing, vehicle, estimated cost); *Duplicate* copies an itinerary.
@@ -30,8 +30,21 @@
 - **Live checks and cost estimate**, recomputed on every view: duplicate sightseeing, wrong city, closed weekday, child-unsuitable, overloaded days, unverified dietary choices, meals to arrange, missing or inactive or below-category hotels, vehicle seats and operating countries, long legs, unpriced items, over budget.
 - Tests: 8 new builder tests covering PRD Part 25 cases 11–14 and 16–17 (130 backend tests in total).
 
-### Next: editor screens (5b)
-Day-by-day editor with drag and drop plus arrow buttons, activity and day menus, hotel, restaurant and transport pickers, versions panel (save, restore, compare), and live checks. Then browser checks in development mode.
+### Done: editor screens (5b)
+- **Itinerary builder** (`/itineraries/{id}/edit`, opened via *Edit itinerary*):
+  - Read-only banner for saved versions, with *Start editing*.
+  - Per day: rename, add a day after, duplicate, remove (confirmed).
+  - Activities: drag handle, ↑/↓ (which also moves to the previous or next day), time-of-day, edit, remove.
+  - *Add sightseeing or free time*: inventory picker for the day's city that marks "already on day N", plus free-time and custom activities.
+  - Meals per day: hotel, any restaurant in the city (✓ diet verified / ⚠ not verified), own arrangement, not included.
+- **Side panels**: estimated cost, live checks, hotels with *Replace* (city hotels with stars, price from, DEMO), vehicle choice, road/train per leg.
+- **Versions dialog**: list, view any version read-only (`?version=N` on the day-by-day page), restore, compare any two in plain English. *Save version* with name and notes; *Duplicate* itinerary.
+- **Bugs found by the browser test and fixed**: three dropdowns (leg mode, vehicle, time of day) read the selected value only after React had restored the old value, so the change was lost. The value is now read immediately. "By road" now returns a leg to the trip's own road vehicle type.
+- Real browser, **development mode**: start editing, add day, add sightseeing, arrow move, meal, replace hotel, time of day, train leg (each verified on the server), save version, compare, restore. 19 checks pass with zero console warnings.
+
+### Known limits
+- Drag and drop is verified manually (headless browsers can't reliably simulate it); the ↑/↓ buttons use the same backend operation and are covered by automated tests.
+- Changing a day's *city* is done by removing or adding days around stays (cities come from the route); a "move to another city" action can follow if needed.
 
 ---
 

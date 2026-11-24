@@ -68,6 +68,12 @@ No LLM decides routes or picks inventory (PRD 13). The engine is a pure module o
 ### TD-025 · Offline route map in the UI
 Route maps are drawn as SVG from city coordinates (equirectangular projection), so they work without internet or tile services and are reusable in PDFs. Labels avoid overlapping earlier labels; a full map (Leaflet/OSM) can be added where online maps add value.
 
+### TD-026 · Builder versioning: immutable snapshots plus one working copy (Phase 5)
+Edits never touch saved versions. The latest version is either a locked snapshot (read-only) or the single working copy. *Start editing* clones the latest snapshot; *Save version* locks the copy; *Restore* clones any version as a new copy and auto-saves an open draft first, so nothing is lost. After structural day edits, stays and legs are re-derived from the days, keeping previous hotel and transport choices where they still apply, so totals, dates and the route can't drift. Warnings and costs are computed live from the version content rather than stored, so they always match the current edit.
+
+### TD-027 · Controlled selects: read the event value synchronously
+With React-controlled `<select>`s whose value only changes after the server responds, React restores the old DOM value immediately after `onChange`. Code must read `e.target.value` synchronously, not inside the async mutation callback. This was found by the builder's browser test (leg mode, vehicle and time of day were silently reverting) and fixed.
+
 ### TD-021 · Image pipeline and serving (Phase 2c)
 Pillow validates by content (not the extension), caps pixels against decompression bombs, applies EXIF orientation and re-encodes, which drops all metadata including GPS (a privacy requirement for phone photos). The long edge is capped at 2400 px (enough for A4 brochures), plus a 480 px JPEG thumbnail. Dedupe uses SHA-256 of the original bytes. Files are served through authenticated API routes, with `?v=<hash>` URLs and `immutable` caching; replacing a file changes the hash, which busts caches. Uploads go through the Next.js rewrite like all other API calls (verified with real browser uploads).
 

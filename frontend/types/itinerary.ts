@@ -18,6 +18,9 @@ export type ItinerarySummary = {
   created_at: string;
   version_number: number;
   version_label: string;
+  version_notes: string | null;
+  is_locked: boolean;
+  latest_version_number: number;
   start_date: string;
   total_days: number;
   total_nights: number;
@@ -61,4 +64,31 @@ export type ItineraryDetail = ItinerarySummary & {
   days: Day[];
   stays: Stay[];
   transports: Transport[];
+};
+
+// ------------------------------------------------------------------ builder (Phase 5)
+export type TimeSlot = "morning" | "afternoon" | "full_day" | "evening";
+
+export type VersionInfo = {
+  version_number: number;
+  label: string;
+  notes: string | null;
+  is_locked: boolean;
+  created_at: string;
+  created_by: string | null;
+  total_days: number;
+  total_nights: number;
+  total_cost: string | null;
+  currency: string;
+};
+
+export type VersionDiff = {
+  a: number;
+  b: number;
+  summary: string[];
+  route_a: string[];
+  route_b: string[];
+  cost_a: string | null;
+  cost_b: string | null;
+  currency: string;
 };

@@ -1,0 +1,13 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ItineraryEditor } from "@/features/itinerary-builder/itinerary-editor";
+
+export const metadata: Metadata = { title: "Itinerary Builder" };
+// Waits for the browser-side session check (see app/(app)/layout.tsx), so not "instant".
+export const instant = false;
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const id = Number((await params).id);
+  if (!Number.isInteger(id) || id < 1) notFound();
+  return <ItineraryEditor id={id} />;
+}

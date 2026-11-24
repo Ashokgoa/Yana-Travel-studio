@@ -157,5 +157,31 @@ Errors: `invalid_image` (422, not a real/allowed image), `file_too_large` (413),
 | GET | `/itineraries?q=&strategy=` | All saved itineraries (paged) |
 | GET | `/itineraries/{id}` | Full current version: route, days (activities, meals), stays (hotel, rooms, alternatives), transports, explanations, warnings, cost lines. All costs and distances are estimates |
 
+### Itinerary builder (Phase 5)
+
+Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working copy and return the updated itinerary (409 `version_locked` otherwise).
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/itineraries/{id}?version=N` | View a specific version |
+| GET | `/itineraries/{id}/versions` | Versions, newest first (label, notes, locked, author, days, est. cost) |
+| GET | `/itineraries/{id}/versions/compare?a=&b=` | Plain-English differences |
+| POST | `/itineraries/{id}/edit` | Start editing (creates a working copy if needed) |
+| POST | `/itineraries/{id}/versions` `{label, notes?}` | Save the working copy as a named read-only version |
+| POST | `/itineraries/{id}/versions/{n}/restore` | Restore version n as a new working copy (an open draft is auto-saved first) |
+| POST | `/itineraries/{id}/duplicate` | Copy the itinerary |
+| POST | `/itineraries/{id}/days/{n}/add-after` · `/duplicate` | Add / duplicate a day |
+| DELETE | `/itineraries/{id}/days/{n}` | Remove a day (not arrival/departure) |
+| PATCH | `/itineraries/{id}/days/{n}` `{title, description}` | Edit day text |
+| POST | `/itineraries/{id}/days/{n}/activities` | Add sightseeing (`attraction_id`) or free-time/custom activity |
+| PATCH / DELETE | `/itineraries/{id}/activities/{aid}` | Edit / remove an activity |
+| POST | `/itineraries/{id}/activities/{aid}/move` `{day_number, position, time_slot?}` | Move an activity |
+| PUT | `/itineraries/{id}/days/{n}/meals/{breakfast\|lunch\|dinner}` `{arrangement, restaurant_id?}` | Set a meal |
+| PUT | `/itineraries/{id}/stays/{sid}/hotel` `{hotel_id}` | Replace a hotel (same city; re-priced) |
+| PUT | `/itineraries/{id}/vehicle` `{vehicle_id}` | Change the vehicle |
+| PATCH | `/itineraries/{id}/transports/{tid}` `{mode}` | Change a leg's mode |
+
+Every response re-runs the live checks and cost estimate.
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 

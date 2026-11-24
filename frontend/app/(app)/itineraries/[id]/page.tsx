@@ -6,8 +6,12 @@ export const metadata: Metadata = { title: "Itinerary" };
 // Waits for the browser-side session check (see app/(app)/layout.tsx), so not "instant".
 export const instant = false;
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ version?: string }> };
+
+export default async function Page({ params, searchParams }: Props) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id < 1) notFound();
-  return <ItineraryDetailView id={id} />;
+  const raw = (await searchParams).version;
+  const version = raw && /^\d+$/.test(raw) ? Number(raw) : undefined;
+  return <ItineraryDetailView key={version ?? "latest"} id={id} version={version} />;
 }
