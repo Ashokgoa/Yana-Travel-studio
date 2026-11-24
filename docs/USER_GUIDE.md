@@ -51,6 +51,21 @@ After creating an enquiry you go straight to **Customer requirements** (also rea
 
 The **Readiness** panel lists anything still missing and any conflicts (for example more must-visit places than nights). The final **Review** step shows everything on one page.
 
+## Generating itineraries
+
+When the requirements are complete (Readiness shows *Ready for itinerary generation*), open the enquiry and click **Generate 3 alternatives**:
+
+- **Classic**: major destinations and popular sightseeing at a balanced pace.
+- **Scenic**: mountains, lakes and nature, at a more relaxed pace.
+- **Premium**: higher-category hotels and transport.
+
+Each card shows the route map, days, countries, average hotel stars and an **estimated** cost. **Compare** puts them side by side (lowest distance, price and fewest points to check are highlighted). **View day by day** shows every day with sightseeing, travel (with estimated distance and time), meals and the hotel for the night, plus:
+
+- **Points to check**: anything you should look at, e.g. no hotel in a city, no verified restaurant for the dietary need, a long drive, over budget, a vehicle not listed for a country.
+- **Why this plan**: why each city was chosen or left out.
+
+Important: must-visit places are never dropped. If they cannot fit, the app explains why instead of generating. Prices and availability are estimates from inventory, not confirmed bookings. **Regenerate** creates a new set and keeps the old ones (see *Itinerary Builder → Saved Itineraries*). Editing an itinerary comes in the next phase.
+
 ## Destination inventory and suppliers
 
 Under **Destination Inventory** (Countries, Cities, Sightseeing, Hotels, Restaurants, Transportation) and **Suppliers**, everyone can search and view. **Only administrators** can add, edit, deactivate or reactivate.

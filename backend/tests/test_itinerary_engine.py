@@ -151,6 +151,14 @@ def test_case_8_jain_only_verified_restaurants():
     assert any(m.arrangement == "own" and m.note for d in plan.days for m in d.meals)
 
 
+def test_indian_preference_prefers_indian_restaurants_where_verified():
+    r = req(food_preferences=["indian_vegetarian"], meals=["breakfast", "lunch", "dinner"])
+    plan = generate(r, INV, "classic")
+    rest = {x.id: x for x in INV.restaurants}
+    ams_meals = [rest[m.restaurant_id] for d in plan.days if d.city_id == CITY["Amsterdam"] for m in d.meals if m.restaurant_id]
+    assert ams_meals and all("Indian" in (x.cuisine or "") for x in ams_meals), [x.name for x in ams_meals]
+
+
 def test_case_9_five_star_hotels_preferred():
     r = req(hotel_categories=["5_star"], countries=("France", "Switzerland"), arrival_airport="Paris", departure_airport="Zurich")
     plan = generate(r, INV, "classic")

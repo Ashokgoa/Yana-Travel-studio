@@ -5,12 +5,45 @@
 | 0 | Project foundation | ✅ Complete (2026-11-23) |
 | 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
 | 2 | Destination inventory & images | ✅ Complete (2026-11-24) |
-| 3 | Customer requirement capture | ✅ Complete (2026-11-24), awaiting approval |
-| 4 | Itinerary engine | ⏳ Next |
-| 5 | Visual itinerary builder | Planned |
+| 3 | Customer requirement capture | ✅ Complete (2026-11-24) |
+| 4 | Itinerary engine | ✅ Complete (2026-11-24), awaiting approval |
+| 5 | Visual itinerary builder | ⏳ Next |
 | 6 | PDF designer | Planned |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
+
+---
+
+## Phase 4 – Itinerary engine (2026-11-24)
+
+### Delivered
+- **Deterministic engine** (`backend/app/engines/itinerary_engine.py`, pure functions, no AI):
+  1. Validates requirements, refusing with a clear list if incomplete.
+  2. Chooses cities: must-visits are never dropped; preferred and optional are ranked by strategy; avoided places are excluded; arrival and departure cities come from the airports; cities with hotels are preferred.
+  3. Orders the route with nearest-neighbour plus 2-opt, with fixed start and end.
+  4. Allocates nights to match the trip exactly, using pace, minimum nights, unseen sightseeing and strategy affinity.
+  5. Plans days by interests, children's suitability and opening days.
+  6. Plans meals only at restaurants with *verified* dietary options (Indian first for Indian preferences).
+  7. Matches hotels by stars, style, location, breakfast and room fit, with alternatives.
+  8. Picks the vehicle by seats and operating countries, with train for long legs if requested.
+  9. Estimates costs and compares them with the budget.
+- **Three strategies**: Classic, Scenic and Premium, each with *explanations* (why) and *warnings* (what to check). If must-visits cannot fit, it explains instead of dropping them.
+- **Geography** (`engines/geo.py`): great-circle × 1.25 road factor, 70 km/h coach average plus EU driver breaks. Always labelled *estimate*.
+- **Storage** (migration `0005`): itineraries → versions → days → activities and meals, plus stays and transports. All rows reference inventory records; the engine report is kept on the version.
+- **API**: generate, list per enquiry, saved itineraries, and full day-by-day detail with resolved names and images.
+- **Screens**: *Itineraries* section on the enquiry page (generate or regenerate), side-by-side **Compare** with lowest values highlighted, **day-by-day page** (offline route map, points to check, why this plan, hotels, cost estimate), and **Saved Itineraries**.
+
+### Verification
+- 18 engine tests on the demo geography covering PRD Part 25 cases 1–10 and 15 (7, 12 and 15 days; 2 and 6 countries; mandatory; children; Jain; 5★; limited budget; three alternatives), plus avoid rules, costs, vehicles, and day/night/date consistency.
+- 5 API tests (incomplete requirements, end-to-end generation, regeneration batches, inactive hotels never proposed, explained impossibility). 122 backend tests in total.
+- Quality review of the generated plans led to engine improvements: prefer cities with hotels; arrival/departure cities don't "cover" a must-visit country; spare nights go where sightseeing remains; strategy affinity; child-unsuitable attractions excluded; Indian restaurants first for Indian preferences.
+- Real browser (development mode): generate → compare → day-by-day → saved list, all checks pass with zero console warnings.
+
+### Outstanding / known limits
+- Distances and times are straight-line estimates (no routing service); planners should verify long legs.
+- Many demo attractions have no ticket price, so those costs show as "no price" (not invented).
+- Map labels for very close cities can touch; the PDF map (Phase 6) will be refined.
+- Editing itineraries (move activities, replace hotels, versions) is Phase 5.
 
 ---
 

@@ -65,7 +65,7 @@ As built: `rooms` is JSON `[{type, count}]`, `meals` a JSON list, plus `travel_p
 
 The polymorphic `media_links` lets one image serve many records without duplicating files. Integrity is enforced by the media service (see risk R6).
 
-## Itineraries (Phases 4–5)
+## Itineraries (Phases 4–5) ✅ migration `0005`
 
 | Table | Key columns |
 |---|---|
@@ -74,6 +74,7 @@ The polymorphic `media_links` lets one image serve many records without duplicat
 | `itinerary_days` | version_id → (CASCADE), day_number, date, city_id → (overnight city), title, description, is_free_day |
 | `itinerary_activities` | day_id → (CASCADE), sort_order, time_slot (morning, afternoon, evening, full_day), activity_type (sightseeing, transfer, meal, check_in, check_out, free_time, custom), attraction_id → (nullable, RESTRICT), title, description, duration_min |
 | `itinerary_hotels` | version_id → (CASCADE), hotel_id → (RESTRICT), room_type_id →, city_id, check_in_day, nights, rooms, room_config JSON, is_alternative |
+| *As built* | Tables are `itinerary_meals` (per day: meal, arrangement hotel/restaurant/own, restaurant_id, note) and `itinerary_stays` (city, hotel_id, check_in_day, nights, rooms JSON, alternative_hotel_ids, estimated_cost). `itinerary_versions.generation_report` holds explanations, warnings, cost lines and totals; `vehicle_id` is on the version. The current version is the highest `version_number`; `itineraries.batch` numbers generation runs per enquiry. |
 | `itinerary_restaurants` | day_id → (CASCADE), meal_type (breakfast, lunch, dinner), arrangement (hotel, restaurant, packed, own_arrangement), restaurant_id → (nullable), notes |
 | `itinerary_transports` | version_id → (CASCADE), day_id →, sort_order, from_city_id →, to_city_id →, mode (coach, minibus, car, train, flight, ferry), service_type, vehicle_id → (nullable), distance_km, duration_min, is_estimate, notes |
 | `itinerary_media` | version_id → (CASCADE), section (cover, day, hotel, attraction, gallery), target_id, media_id →, sort_order (PDF image overrides) |

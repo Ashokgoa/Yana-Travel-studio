@@ -148,5 +148,14 @@ Errors: `invalid_image` (422, not a real/allowed image), `file_too_large` (413),
 | GET | `/enquiries/{id}/requirements` | Saved requirements, or defaults pre-filled from the enquiry (`exists: false`). Always includes `total_days`, `total_nights`, `total_travellers`, `rooms_count`, `room_capacity`, `missing[]`, `warnings[]`, `is_complete` |
 | PUT | `/enquiries/{id}/requirements` | Save (draft-friendly). Validates vocabularies, children's ages, date order, duplicate destinations, and that each city belongs to its country (`400 city_country_mismatch`). Syncs the enquiry summary; first save moves a *New* enquiry to *In Progress* |
 
+### Itineraries (Phase 4)
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/enquiries/{id}/itineraries/generate` `{strategies?: ["classic","scenic","premium"]}` | Generate alternatives from complete requirements and **active** inventory. 422: `requirements_missing`, `requirements_incomplete` (lists missing items), `cannot_generate` (e.g. must-visits don't fit; nothing stored) |
+| GET | `/enquiries/{id}/itineraries` | Summaries, latest generation (`batch`) first |
+| GET | `/itineraries?q=&strategy=` | All saved itineraries (paged) |
+| GET | `/itineraries/{id}` | Full current version: route, days (activities, meals), stays (hotel, rooms, alternatives), transports, explanations, warnings, cost lines. All costs and distances are estimates |
+
 Business-rule errors (400): `invalid_agent`, `inactive_agent`, `invalid_customer`, `customer_agent_mismatch`, `invalid_planner`.
 

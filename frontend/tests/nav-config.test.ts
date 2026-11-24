@@ -23,6 +23,11 @@ describe("visibleNavigation", () => {
     expect(visible.map((i) => i.label)).toContain("Suppliers");
   });
 
+  it("shows Saved Itineraries but hides unbuilt itinerary pages", () => {
+    const ib = visibleNavigation("planner").find((i) => i.label === "Itinerary Builder");
+    expect(ib?.children?.map((c) => c.label)).toEqual(["Saved Itineraries"]);
+  });
+
   it("shows every CRM page", () => {
     const crm = visibleNavigation("planner").find((i) => i.label === "CRM");
     expect(crm?.children?.map((c) => c.label)).toEqual(["Travel Agents", "Customers", "Enquiries"]);

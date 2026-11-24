@@ -62,6 +62,12 @@ Planners often capture requirements in several sittings, so `PUT` accepts partia
 ### TD-023 · Browser checks run in development mode too
 Production builds hide React development warnings (a duplicate-key warning slipped through). Browser checks now also run against an isolated `next dev` server (`NEXT_DIST_DIR=.next-test`, separate ports and test database), so warnings are caught without disturbing the developer's own running app.
 
+### TD-024 · Itinerary engine: deterministic heuristics, pure and explainable (Phase 4)
+No LLM decides routes or picks inventory (PRD 13). The engine is a pure module over dataclasses (DB-free and fully unit-testable) and returns explanations and warnings with every plan. City selection scores sightseeing by customer interests and strategy affinity, strongly prefers cities with a hotel, and never drops a must-visit (an impossibility raises `GenerationError` with the reason). Routing uses nearest-neighbour plus 2-opt on great-circle distances with fixed arrival/departure ends. Nights go first to minimums, then to where unseen sightseeing and strategy affinity are highest. Hotel choice is a weighted score (stars, style, location, breakfast, room fit, group capacity), with price as the tie-breaker (cheapest for Classic/Scenic, highest-quality for Premium). The generated version stores the full report for transparency; editing (Phase 5) creates new versions rather than changing generated ones.
+
+### TD-025 · Offline route map in the UI
+Route maps are drawn as SVG from city coordinates (equirectangular projection), so they work without internet or tile services and are reusable in PDFs. Labels avoid overlapping earlier labels; a full map (Leaflet/OSM) can be added where online maps add value.
+
 ### TD-021 · Image pipeline and serving (Phase 2c)
 Pillow validates by content (not the extension), caps pixels against decompression bombs, applies EXIF orientation and re-encodes, which drops all metadata including GPS (a privacy requirement for phone photos). The long edge is capped at 2400 px (enough for A4 brochures), plus a 480 px JPEG thumbnail. Dedupe uses SHA-256 of the original bytes. Files are served through authenticated API routes, with `?v=<hash>` URLs and `immutable` caching; replacing a file changes the hash, which busts caches. Uploads go through the Next.js rewrite like all other API calls (verified with real browser uploads).
 

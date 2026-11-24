@@ -677,7 +677,8 @@ class _Context:
                    and (r.group_capacity is None or r.group_capacity >= self.req.travellers)]
         if not options:
             return None
-        return min(options, key=lambda r: (usage.get(r.id, 0), not (indian and r.cuisine and "indian" in r.cuisine.lower()), r.id))
+        # Indian food preferences: an Indian restaurant with the verified option comes first; rotate within that group.
+        return min(options, key=lambda r: (not (indian and r.cuisine and "indian" in r.cuisine.lower()), usage.get(r.id, 0), r.id))
 
     # ------------------------------------------------------------- 6b: hotels
     def wanted_stars(self) -> set[int]:

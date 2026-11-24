@@ -40,10 +40,10 @@ export const NAVIGATION: NavItem[] = [
     label: "Itinerary Builder",
     href: "/itineraries",
     icon: Route,
-    enabled: false, // Phases 4–5
+    enabled: true,
     children: [
       { label: "Create Itinerary", href: "/itineraries/new", enabled: false },
-      { label: "Saved Itineraries", href: "/itineraries", enabled: false },
+      { label: "Saved Itineraries", href: "/itineraries", enabled: true },
       { label: "Itinerary Templates", href: "/itineraries/templates", enabled: false },
       { label: "Compare Proposals", href: "/itineraries/compare", enabled: false },
     ],

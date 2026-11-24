@@ -17,6 +17,7 @@ import { ENQUIRY_STATUS_LABELS, formatDate, formatDateTime, formatMoney, tripLen
 import { handleFormError } from "@/lib/form-errors";
 import { enquiriesApi, requirementsApi } from "@/services/crm";
 import { ReadinessList, RequirementsSummary } from "@/features/requirements/requirements-summary";
+import { EnquiryItineraries } from "@/features/itineraries/enquiry-itineraries";
 import { ENQUIRY_STATUSES, type EnquiryDetail, type EnquiryStatus } from "@/types/crm";
 
 function StatusDialog({ enquiry, open, onOpenChange }: { enquiry: EnquiryDetail; open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -192,6 +193,7 @@ export function EnquiryDetailView({ id }: { id: number }) {
           </Card>
 
           <RequirementsCard enquiryId={e.id} />
+          <EnquiryItineraries enquiryId={e.id} />
         </div>
 
         <div className="space-y-6">
