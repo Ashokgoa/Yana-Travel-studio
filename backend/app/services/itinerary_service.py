@@ -117,7 +117,8 @@ class ItineraryService:
         title = f"{plan.title}: {', '.join(countries[:4])}{' +' + str(len(countries) - 4) if len(countries) > 4 else ''} · {plan.total_days} days"
         itinerary = Itinerary(enquiry_id=enquiry.id, title=title[:200], strategy=plan.strategy, batch=batch, created_by_id=user.id)
         version = ItineraryVersion(
-            version_number=1, label="Generated", start_date=plan.days[0].date, total_days=plan.total_days,
+            version_number=1, label="Generated", is_locked=True,  # the original proposal is never edited in place
+            start_date=plan.days[0].date, total_days=plan.total_days,
             total_nights=plan.total_nights, vehicle_id=plan.vehicle_id, created_by_id=user.id,
             generation_report={
                 "strategy": plan.strategy,
@@ -186,8 +187,14 @@ class ItineraryService:
         items = list(self.db.scalars(stmt.order_by(Itinerary.created_at.desc(), Itinerary.id.desc()).offset(offset).limit(limit)))
         return items, total
 
-    def current_version(self, itinerary: Itinerary) -> ItineraryVersion:
-        version = max(itinerary.versions, key=lambda v: v.version_number)
+    def current_version(self, itinerary: Itinerary, number: int | None = None) -> ItineraryVersion:
+        """Latest version, or a specific `number` (404 if it doesn't exist)."""
+        if number is None:
+            version = max(itinerary.versions, key=lambda v: v.version_number)
+        else:
+            version = next((v for v in itinerary.versions if v.version_number == number), None)
+            if version is None:
+                raise DomainError("Version not found.", status.HTTP_404_NOT_FOUND, "not_found")
         return self.db.scalar(
             select(ItineraryVersion).options(
                 selectinload(ItineraryVersion.days).selectinload(ItineraryDay.activities),

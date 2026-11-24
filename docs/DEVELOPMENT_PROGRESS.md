@@ -6,11 +6,32 @@
 | 1 | UI foundation & CRM | ✅ Complete (2026-11-23), awaiting approval |
 | 2 | Destination inventory & images | ✅ Complete (2026-11-24) |
 | 3 | Customer requirement capture | ✅ Complete (2026-11-24) |
-| 4 | Itinerary engine | ✅ Complete (2026-11-24), awaiting approval |
-| 5 | Visual itinerary builder | ⏳ Next |
+| 4 | Itinerary engine | ✅ Complete (2026-11-24) |
+| 5 | Visual itinerary builder | 🔨 In progress: backend done (2026-11-24); editor screens next |
 | 6 | PDF designer | Planned |
 | 7 | Pricing & costing | Planned |
 | 8 | AI integration | Planned |
+
+---
+
+## Phase 5 – Visual itinerary builder (in progress)
+
+### Done: backend (5a)
+- **Versioning**: generated versions are read-only snapshots (migration `0006` locks existing ones). *Start editing* clones the latest saved version into a working copy; *Save version* (label + notes) locks it; *Restore* copies any earlier version into a new working copy (an open draft is auto-saved first, so nothing is lost); *Compare* lists the differences in plain English (days, nights per city, hotels, sightseeing, vehicle, estimated cost); *Duplicate* copies an itinerary.
+- **Edits on the working copy** (409 `version_locked` otherwise):
+  - add, duplicate or remove days (arrival and departure days protected);
+  - edit day text;
+  - add sightseeing from inventory or free-time/custom activities;
+  - edit, move (any day, position or slot) or remove activities;
+  - set meals (hotel, restaurant from inventory, own, none);
+  - replace a hotel (same city only; rooms re-mapped and re-priced; the previous hotel is kept as an alternative);
+  - change the vehicle or a leg's mode (e.g. train).
+- **Consistency**: after day changes, hotel stays and inter-city legs are rebuilt from the days. Previous hotel choices and transport are kept where they still apply, and days, nights, dates and route always add up.
+- **Live checks and cost estimate**, recomputed on every view: duplicate sightseeing, wrong city, closed weekday, child-unsuitable, overloaded days, unverified dietary choices, meals to arrange, missing or inactive or below-category hotels, vehicle seats and operating countries, long legs, unpriced items, over budget.
+- Tests: 8 new builder tests covering PRD Part 25 cases 11–14 and 16–17 (130 backend tests in total).
+
+### Next: editor screens (5b)
+Day-by-day editor with drag and drop plus arrow buttons, activity and day menus, hotel, restaurant and transport pickers, versions panel (save, restore, compare), and live checks. Then browser checks in development mode.
 
 ---
 

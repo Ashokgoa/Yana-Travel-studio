@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
@@ -9,6 +11,7 @@ from app.models import Attraction, City, Enquiry, Hotel, Itinerary, ItineraryVer
 from app.schemas.itinerary import (
     ActivityOut, CostLineOut, DayOut, HotelRef, ItineraryDetail, ItinerarySummary, MealOut, RouteStop, StayOut, TransportOut,
 )
+from app.services.itinerary_checks import Evaluation, evaluate
 from app.services.itinerary_service import ItineraryService
 from app.services.media_service import primary_image_urls
 
@@ -31,43 +34,50 @@ class _Lookups:
         return HotelRef(id=h.id, name=h.name, stars=h.star_rating, is_demo=h.is_demo, image_url=self.hotel_images.get(h.id)) if h else None
 
 
-def _summary(db: Session, it: Itinerary, version: ItineraryVersion, lk: _Lookups, enquiry: Enquiry | None) -> dict:
-    rep = version.generation_report or {}
+def _route(v: ItineraryVersion, lk: _Lookups) -> list[RouteStop]:
+    """Route from the CURRENT stays (so edits are reflected), in order."""
     route = []
-    for stop in rep.get("stops", []):
-        c = lk.cities.get(stop["city_id"])
+    for st in sorted(v.stays, key=lambda x: x.check_in_day):
+        c = lk.cities.get(st.city_id)
         if c:
             route.append(RouteStop(city_id=c.id, city=c.name, country=c.country.name, iso_code=c.country.iso_code,
-                                   nights=stop["nights"], lat=c.latitude, lng=c.longitude))
-    hotels = [lk.hotel(s.hotel_id) for s in sorted(version.stays, key=lambda s: s.check_in_day)]
+                                   nights=st.nights, lat=c.latitude, lng=c.longitude))
+    return route
+
+
+def _summary(db: Session, it: Itinerary, version: ItineraryVersion, lk: _Lookups, enquiry: Enquiry | None, ev: Evaluation) -> dict:
+    rep = version.generation_report or {}
+    hotels = [lk.hotel(st.hotel_id) for st in sorted(version.stays, key=lambda x: x.check_in_day)]
     return dict(
         id=it.id, enquiry_id=it.enquiry_id, enquiry_reference=enquiry.reference if enquiry else None,
         customer_name=enquiry.customer.name if enquiry else None, title=it.title, strategy=it.strategy,
         strategy_summary=rep.get("summary", ""), status=it.status, batch=it.batch, created_at=it.created_at,
-        version_number=version.version_number, version_label=version.label, start_date=version.start_date,
-        total_days=version.total_days, total_nights=version.total_nights, route=route, hotels=hotels,
-        total_cost=rep.get("total_cost"), cost_per_person=rep.get("cost_per_person"), currency=rep.get("currency", "EUR"),
-        unknown_cost_items=rep.get("unknown_cost_items", 0), total_distance_km=rep.get("total_distance_km", 0),
-        warnings_count=len(rep.get("warnings", [])),
+        version_number=version.version_number, version_label=version.label, version_notes=version.notes,
+        is_locked=version.is_locked, latest_version_number=max(x.version_number for x in it.versions),
+        start_date=version.start_date, total_days=version.total_days, total_nights=version.total_nights,
+        route=_route(version, lk), hotels=hotels,
+        total_cost=str(ev.total_cost.quantize(Decimal("1"))), cost_per_person=str(ev.cost_per_person), currency=ev.currency,
+        unknown_cost_items=ev.unknown_cost_items, total_distance_km=ev.total_distance_km, warnings_count=len(ev.warnings),
     )
 
 
 def summaries(db: Session, itineraries: list[Itinerary]) -> list[ItinerarySummary]:
     service = ItineraryService(db)
     versions = {it.id: service.current_version(it) for it in itineraries}
-    city_ids = {s["city_id"] for v in versions.values() for s in (v.generation_report or {}).get("stops", [])}
+    city_ids = {st.city_id for v in versions.values() for st in v.stays}
     hotel_ids = {s.hotel_id for v in versions.values() for s in v.stays if s.hotel_id}
     lk = _Lookups(db, city_ids, hotel_ids)
     enquiries = {e.id: e for e in db.scalars(select(Enquiry).options(joinedload(Enquiry.customer)).where(Enquiry.id.in_({it.enquiry_id for it in itineraries if it.enquiry_id} or {0})))}
-    return [ItinerarySummary(**_summary(db, it, versions[it.id], lk, enquiries.get(it.enquiry_id))) for it in itineraries]
+    return [ItinerarySummary(**_summary(db, it, versions[it.id], lk, enquiries.get(it.enquiry_id), evaluate(db, versions[it.id], it.enquiry_id)))
+            for it in itineraries]
 
 
-def detail(db: Session, it: Itinerary) -> ItineraryDetail:
-    v = ItineraryService(db).current_version(it)
+def detail(db: Session, it: Itinerary, version_number: int | None = None) -> ItineraryDetail:
+    v = ItineraryService(db).current_version(it, version_number)
     rep = v.generation_report or {}
     city_ids = {d.city_id for d in v.days} | {d.overnight_city_id for d in v.days if d.overnight_city_id} | {s.city_id for s in v.stays} \
         | {t.from_city_id for t in v.transports if t.from_city_id} | {t.to_city_id for t in v.transports if t.to_city_id} \
-        | {s["city_id"] for s in rep.get("stops", [])}
+
     hotel_ids = {s.hotel_id for s in v.stays if s.hotel_id} | {h for s in v.stays for h in s.alternative_hotel_ids}
     attraction_ids = {a.attraction_id for d in v.days for a in d.activities if a.attraction_id}
     restaurant_ids = {m.restaurant_id for d in v.days for m in d.meals if m.restaurant_id}
@@ -101,11 +111,12 @@ def detail(db: Session, it: Itinerary) -> ItineraryDetail:
                      duration_min=t.duration_min, is_estimate=t.is_estimate, note=t.note)
         for t in v.transports
     ]
-    base = _summary(db, it, v, lk, enquiry)
+    ev = evaluate(db, v, it.enquiry_id)
+    base = _summary(db, it, v, lk, enquiry, ev)
     return ItineraryDetail(
         **base,
-        explanations=rep.get("explanations", []), warnings=rep.get("warnings", []),
-        costs=[CostLineOut(**c) for c in rep.get("costs", [])],
+        explanations=rep.get("explanations", []), warnings=ev.warnings,
+        costs=[CostLineOut(**c) for c in ev.costs],
         vehicle=lk.vehicles[v.vehicle_id].name if v.vehicle_id in lk.vehicles else None,
         days=days, stays=stays, transports=transports,
     )

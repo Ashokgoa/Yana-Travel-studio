@@ -106,7 +106,7 @@ def test_generate_three_alternatives_end_to_end(planner_client, enquiry, world):
     assert sights and all(a["attraction_id"] for a in sights)
     veg = [m for d in detail["days"] for m in d["meals"] if m["restaurant_name"] == "Veg Paree"]
     assert veg, "verified vegetarian restaurant used in Paris"
-    assert any("No verified restaurant" in w for w in detail["warnings"])  # other cities flagged
+    assert any("still to be arranged" in w for w in detail["warnings"])  # meals without a verified restaurant are flagged
     assert all(c["is_estimate"] for c in detail["costs"]) and detail["explanations"]
     assert any(t["kind"] == "intercity" and t["is_estimate"] and t["distance_km"] for t in detail["transports"])
 
