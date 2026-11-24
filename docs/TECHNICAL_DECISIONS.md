@@ -44,6 +44,16 @@ Playwright drives the browser that is already installed (`channel="msedge"`, fal
 ### TD-029 · Customer-safe proposals: only a planner-entered selling price (Phase 6)
 Inventory prices are supplier costs, so they are never rendered. The PDF shows a price only when the planner types one into the designer; otherwise it shows "Price on request". The internal estimate appears in the designer only, labelled "never in the PDF". Tests check the preview for cost wording and inventory prices. Phase 7 pricing will provide the calculated selling price.
 
+### TD-031 · Pricing model: category mark-ups, twin-share presentation, live cost lines (Phase 7)
+YANA decided: a margin per service category (mark-up on cost); per adult twin sharing plus single supplement and child prices; EUR with an optional second currency at a manually entered rate; admins and planners see costs.
+- **Per-person prices** come from components: shared costs ÷ all travellers, per-person costs, and half a double room per night. The single supplement is the single rate minus that half (double rate used for single use when no single room type exists, flagged). A child without a bed pays no hotel share; a child with a bed pays an adjustable % of it. No percentage for children is invented.
+- **Profit** = revenue (prices × travellers) − the actual cost of all lines, including the real room plan (e.g. family rooms), so it reflects what YANA pays.
+- **Automatic lines are computed, not stored.** The sheet keeps only decisions and overrides, keyed by stable identifiers (city / hotel / room type, attraction, restaurant, vehicle), so the pricing follows builder edits and carries to new versions.
+- **Pure engine, Decimal throughout**, with rounding applied after cents to avoid 499.999 → 500 + 1 errors.
+
+### TD-032 · Customer price is a separate object (Phase 7)
+`CustomerPrice` contains selling prices only and is the only pricing object the PDF builder receives (R7). Tests render proposals and check that the cost, profit and revenue amounts and the words margin and profit are absent. The designer shows the calculated price with a link to the internal sheet.
+
 ### TD-030 · Each PDF belongs to a saved version (Phase 6)
 Exporting from an open working draft first saves it as a locked version ("PDF proposal"). The export row stores the version id and number plus the settings snapshot, so any PDF can be traced to its exact content. The enquiry moves to *Proposal generated* only from earlier statuses, never backwards.
 

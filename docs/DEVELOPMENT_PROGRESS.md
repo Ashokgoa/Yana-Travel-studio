@@ -8,11 +8,51 @@
 | 3 | Customer requirement capture | ✅ Complete (2026-11-24) |
 | 4 | Itinerary engine | ✅ Complete (2026-11-24) |
 | 5 | Visual itinerary builder | ✅ Complete (2026-11-24) |
-| 6 | PDF designer | ✅ Complete (2026-11-24), awaiting approval |
-| 7 | Pricing & costing | ⏳ Next |
-| 8 | AI integration | Planned |
+| 6 | PDF designer | ✅ Complete (2026-11-24) |
+| 7 | Pricing & costing | ✅ Complete (2026-11-24), awaiting approval |
+| 8 | AI integration (optional) | ⏳ Next |
 
 ---
+
+## Phase 7 – Pricing & costing (2026-11-24)
+
+YANA decisions (2026-11-24): a margin per service category; prices shown per adult twin sharing plus single supplement and child prices; EUR with an optional second currency at a manually entered rate; admins and planners see costs.
+
+### Backend (7a)
+- **Pricing engine** (`engines/pricing.py`, pure):
+  - Shared costs (coach, driver, guides, group extras) are divided by all travellers. Per-person costs (tickets, meals, train fares) count once per traveller.
+  - The adult twin price includes half a double room per night. The single supplement is the single rate minus that half (the double rate is used when there is no single room type, flagged as an estimate).
+  - A child without a bed pays no hotel share; a child with a bed pays an adjustable % of it.
+  - Each part gets its category's mark-up. Then the discount %, an adjustment per person and rounding up are applied.
+  - Group revenue (prices × travellers) is compared with the **actual** cost of every line (the real room plan) to give profit and the margin on revenue.
+- **Pricing sheet per version** (`pricing_sheets`, `pricing_lines`, migration `0008`):
+  - Automatic lines are rebuilt from the version on every read: hotel rooms, vehicle and driver, train legs (no price yet), tickets, restaurant meals, and lunch or dinner at hotels (no price yet).
+  - The sheet stores only the planner's decisions: margins, discount, adjustment, rounding, traveller split, overrides of automatic lines by stable key, room-rate overrides, extra lines, the display currency, exchange rate and PDF currency, and notes.
+  - It follows the content to new versions (start editing, restore, duplicate).
+- **Unknown costs** are listed as "No price" and the prices are flagged as incomplete; nothing is guessed. Inventory prices in another currency are left out with a warning.
+- **Admin defaults** (`/settings/pricing`): margin per category (15% placeholder with a "not reviewed" warning), rounding, child bed share, display currency and rate.
+- **PDF**: the price section shows selling prices from the sheet (adult twin, single supplement, children) in EUR, the other currency, or both. A price typed in the designer still wins. Each export stores a snapshot of the price shown.
+- 12 tests: the engine maths checked by hand, the API, versions, and no costs, profit or margin in proposals.
+
+### Frontend (7b)
+- **Pricing sheet** (`/itineraries/{id}/pricing`, from *Pricing* on the itinerary page and in the builder):
+  - Selling-price tiles, with the other currency.
+  - Internal figures: cost per adult, revenue, cost, profit, margin on revenue, and the customer's budget.
+  - Cost lines grouped by category, with include, editable cost and quantity, Estimate / No price / Edited / Added badges, *Back to inventory values*, and *Add cost line*.
+  - Room rates (double and single) used for the per-person prices.
+  - Side panels: margins (with per-person cost → selling for each category), discount, adjustment, rounding, child bed share, travellers, currency and internal notes.
+- **Pricing & Costing** menu page and **Administration → Pricing defaults**.
+- The PDF designer's price panel shows the calculated price with a link to Pricing; the typed price is now an optional override.
+- Real browser, **development mode**: 23 checks pass with zero console warnings. They cover:
+  - changing a margin, overriding a line and resetting it, adding a line through the dialog;
+  - rounding (a select), a single room, the INR rate and the PDF currency;
+  - the PDF preview showing selling prices but no cost, profit or margin;
+  - the admin defaults, the list page and the menu.
+
+### Known limits
+- Ticket and meal prices are often missing in the demo inventory, so the prices show as incomplete until those costs are entered (in inventory or on the sheet).
+- There are no infant rules or age bands yet: every child is either "with bed" or "without bed".
+- Exchange rates are typed in (no live rates), by design.
 
 ## Phase 6 – PDF designer (2026-11-24)
 

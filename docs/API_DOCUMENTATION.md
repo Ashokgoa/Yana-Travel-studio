@@ -183,6 +183,21 @@ Saved versions (incl. v1 *Generated*) are read-only; edits apply to the working 
 
 Every response re-runs the live checks and cost estimate.
 
+### Pricing & costing (Phase 7)
+
+Internal (planners and admins). Every response is the full `PricingView`: lines, room rates, categories, selling prices, other-currency prices, cost, revenue, profit and warnings. All take `?version=` (default: latest).
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/itineraries/{id}/pricing` | Pricing sheet (created from the defaults on first use) |
+| PATCH | `/itineraries/{id}/pricing` | Margins (partial), discount_pct, adjustment_per_person, rounding, child_bed_pct, travellers, display_currency, exchange_rate, pdf_currency, notes |
+| PUT / DELETE | `/itineraries/{id}/pricing/overrides` (`{key, unit_cost?, clear_unit_cost?, quantity?, included?}` / `?key=`) | Override or reset an automatic line |
+| PUT | `/itineraries/{id}/pricing/stay-rates` `{key, double_rate?, single_rate?}` | Room-rate override (both empty = reset) |
+| POST / PUT / DELETE | `/itineraries/{id}/pricing/lines[/{line_id}]` | Extra cost lines |
+| GET / PUT | `/settings/pricing` | Pricing defaults (PUT: admins) |
+
+Errors: 422 for margins outside 0–300% or unknown categories; `no_travellers` (400); 404 for unknown lines.
+
 ### PDF proposals (Phase 6)
 
 | Method | Path | Description |

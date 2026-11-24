@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Copy, Eye, FileText, History, Loader2, Lock, PencilLine, Save } from "lucide-react";
+import { Calculator, Copy, Eye, FileText, History, Loader2, Lock, PencilLine, Save } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { controlClass, FormField } from "@/components/common/form-controls";
 import { FormDialog } from "@/components/common/form-dialog";
@@ -77,6 +77,7 @@ export function ItineraryEditor({ id }: { id: number }) {
             <Button variant="outline" onClick={() => setShowVersions(true)}><History aria-hidden /> Versions</Button>
             <Button variant="outline" onClick={() => duplicate.mutate()} disabled={duplicate.isPending}><Copy aria-hidden /> Duplicate</Button>
             <Link href={`/itineraries/${id}`} className={buttonVariants({ variant: "outline" })}><Eye aria-hidden /> View</Link>
+            <Link href={`/itineraries/${id}/pricing`} className={buttonVariants({ variant: "outline" })}><Calculator aria-hidden /> Pricing</Link>
             <Link href={`/itineraries/${id}/proposal`} className={buttonVariants({ variant: "outline" })}><FileText aria-hidden /> PDF</Link>
             {editable && <Button onClick={() => setSaving(true)}><Save aria-hidden /> Save version</Button>}
           </>

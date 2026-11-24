@@ -129,7 +129,7 @@ export function ProposalDesigner({ id, version }: { id: number; version?: number
         <aside className="space-y-5 rounded-xl border bg-card p-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto" aria-label="PDF settings">
           <TemplatePanel s={draft} options={opt} onChange={change} />
           <SectionsPanel s={draft} options={opt} onChange={change} />
-          <PricePanel s={draft} options={opt} onChange={change} />
+          <PricePanel s={draft} options={opt} onChange={change} pricingHref={`/itineraries/${id}/pricing${version ? `?version=${version}` : ""}`} />
           <TextPanel s={draft} options={opt} onChange={change} />
           <PhotosPanel s={draft} options={opt} onChange={change} />
           <ListsPanel s={draft} options={opt} onChange={change} />

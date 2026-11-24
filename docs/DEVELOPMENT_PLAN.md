@@ -91,10 +91,10 @@ See [DATABASE_DESIGN.md](DATABASE_DESIGN.md). Phase 0 migrates `roles`, `users` 
 
 **Commercial**
 
-6. **Base currency** (EUR?) and whether proposals need other currencies (INR, USD), plus the exchange-rate source.
-7. **Default margin %**: single, per agent, or per service category? Rounding rules for selling prices?
-8. **Price presentation**: per person twin-sharing, single supplement, child-with-bed / child-without-bed, infant rules and age bands.
-9. Who may see internal costs: Planner and Admin (assumed), or Admin only?
+6. ~~Base currency~~ **Decided (2026-11-24):** EUR, with an optional second currency at a manually entered rate.
+7. ~~Default margin %~~ **Decided:** per service category, editable per proposal (actual % values still to be set by YANA; 15% placeholders). Rounding is configurable.
+8. ~~Price presentation~~ **Decided:** per adult twin sharing + single supplement + child with/without bed. Infant rules and age bands are still open.
+9. ~~Who may see internal costs~~ **Decided:** admins and planners; customer PDFs never.
 
 **Operational rules for the engine**
 

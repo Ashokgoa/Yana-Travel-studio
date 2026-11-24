@@ -35,6 +35,8 @@ export type ProposalOptions = {
   version_number: number;
   version_label: string;
   version_is_locked: boolean;
+  /** Selling price from the pricing sheet (never costs). */
+  pricing: { status: "none" | "ok" | "incomplete"; text: string | null };
 };
 
 export type ProposalExport = {

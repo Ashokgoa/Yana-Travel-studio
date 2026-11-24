@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, BedDouble, Bus, Camera, FileText, History, Info, LogIn, LogOut, PencilLine, Plane, Sun, TrainFront, Utensils } from "lucide-react";
+import { AlertTriangle, BedDouble, Bus, Calculator, Camera, FileText, History, Info, LogIn, LogOut, PencilLine, Plane, Sun, TrainFront, Utensils } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
@@ -197,6 +197,9 @@ export function ItineraryDetailView({ id, version }: { id: number; version?: num
         description={`${it.customer_name ?? ""} · ${formatDate(it.start_date)} · ${it.total_days} days / ${it.total_nights} nights · Version ${it.version_number} (${it.version_label})`}
         actions={
           <>
+            <Link href={`/itineraries/${it.id}/pricing${version ? `?version=${version}` : ""}`} className={buttonVariants({ variant: "outline" })}>
+              <Calculator aria-hidden /> Pricing
+            </Link>
             <Link href={`/itineraries/${it.id}/proposal${version ? `?version=${version}` : ""}`} className={buttonVariants({ variant: "outline" })}>
               <FileText aria-hidden /> PDF proposal
             </Link>

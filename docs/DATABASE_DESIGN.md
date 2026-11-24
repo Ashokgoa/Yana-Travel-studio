@@ -81,14 +81,15 @@ The polymorphic `media_links` lets one image serve many records without duplicat
 
 Inventory items are always **referenced**, never copied (PRD 14.4). Free-text fields on activities let planners rename or describe without forking inventory.
 
-## Pricing (Phase 7)
+## Pricing (Phase 7) ✅ migration `0008`
 
 | Table | Key columns |
 |---|---|
-| `pricing_sheets` (1:1 version) | currency, margin_pct, discount_amount, discount_pct, manual_adjustment, rounding_rule, pax_basis, show_price_in_pdf |
-| `pricing_lines` | sheet_id → (CASCADE), category (hotel, coach, transfer, sightseeing, guide, meal, other), description, basis (per_person, per_room, per_day, per_vehicle, group), unit_cost, quantity, total_cost, supplier_id →, source_type, source_id, is_estimate |
+| `pricing_sheets` (1:1 version, CASCADE) | currency, margins JSON {category: %}, discount_pct, adjustment_per_person, rounding, child_bed_pct, adults / children_with_bed / children_without_bed / singles (NULL = from the enquiry), overrides JSON {line key: {unit_cost, quantity, included}}, stay_overrides JSON {stay key: {double_rate, single_rate}}, display_currency, exchange_rate, pdf_currency (base / display / both), notes, updated_by_id |
+| `pricing_lines` | Extra lines added by the planner: sheet_id → (CASCADE), category (hotel, transport, transfer, sightseeing, guide, meal, other), basis (per_person, per_day, per_vehicle, per_km, group), description, unit_cost (NULL = unknown), quantity, is_estimate, supplier_id → (SET NULL), sort_order |
+| `app_settings['pricing_defaults']` | margins per category, rounding, child_bed_pct, display_currency, exchange_rate, margins_reviewed |
 
-Totals are computed by the pricing engine, never stored only in the UI.
+Migration `0008`. Automatic cost lines are not stored: they are rebuilt from the version on every read, so prices follow edits, and overrides are kept by stable key (e.g. `hotel:<city>:<hotel>:<room type>`, `ticket:<attraction>`). Totals are always computed by the pricing engine.
 
 ## Documents (Phase 6) ✅ migration `0007`
 

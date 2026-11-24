@@ -7,7 +7,7 @@ describe("visibleNavigation", () => {
     expect(labels).toContain("Dashboard");
     expect(labels).toContain("CRM");
     expect(labels).toContain("PDF Designer");
-    expect(labels).not.toContain("Pricing & Costing");
+    expect(labels).toContain("Pricing & Costing");
     expect(labels).not.toContain("Bookings");
   });
 
@@ -15,7 +15,7 @@ describe("visibleNavigation", () => {
     expect(visibleNavigation("admin").map((i) => i.label)).toContain("Administration");
     expect(visibleNavigation("planner").map((i) => i.label)).not.toContain("Administration");
     expect(visibleNavigation(undefined).map((i) => i.label)).not.toContain("Administration");
-    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF"]);
+    expect(visibleNavigation("admin").find((i) => i.label === "Administration")?.children?.map((c) => c.label)).toEqual(["Users", "Branding & PDF", "Pricing defaults"]);
   });
 
   it("shows the destination inventory pages and suppliers", () => {

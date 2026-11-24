@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowDown, ArrowUp, ImageOff, Sparkles } from "lucide-react";
 import { Segmented, Toggle } from "@/components/common/choice-controls";
 import { FormField, NativeSelect, controlClass } from "@/components/common/form-controls";
@@ -128,11 +129,18 @@ export function SectionsPanel({ s, options, onChange }: { s: ProposalSettings; o
   );
 }
 
-export function PricePanel({ s, options, onChange }: { s: ProposalSettings; options: ProposalOptions; onChange: Change }) {
+export function PricePanel({ s, options, onChange, pricingHref }: { s: ProposalSettings; options: ProposalOptions; onChange: Change; pricingHref: string }) {
+  const pr = options.pricing;
+  const overridden = s.price_per_person !== null;
   return (
-    <Panel title="Price" description="The selling price shown to the customer. Without one, the PDF says “Price on request”.">
+    <Panel title="Price" description="Selling prices only. Costs and margins never appear in the PDF.">
+      <div className={cn("rounded-md px-2.5 py-2 text-xs", pr.status === "ok" ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900")}>
+        {pr.status === "none" ? <>This version has not been priced yet, so the PDF says “Price on request”. </>
+          : <>From the pricing sheet: <strong>{pr.text}</strong> per adult (twin), with single supplement and child prices.{pr.status === "incomplete" ? " Some costs have no price yet." : ""}{overridden ? " Not used: the override below wins." : ""} </>}
+        <Link href={pricingHref} className="font-medium underline">Open Pricing</Link>
+      </div>
       <div className="grid grid-cols-[1fr_5.5rem] gap-2">
-        <FormField label="Price per person" htmlFor="pd-price">
+        <FormField label="Override price per person" htmlFor="pd-price" hint="Optional. Replaces the calculated prices in the PDF.">
           <input id="pd-price" className={controlClass} inputMode="decimal" placeholder="e.g. 2950" value={s.price_per_person ?? ""}
             onChange={(e) => { const v = e.target.value.replace(/[^\d.]/g, ""); onChange({ price_per_person: v === "" ? null : v }); }} />
         </FormField>
@@ -143,11 +151,11 @@ export function PricePanel({ s, options, onChange }: { s: ProposalSettings; opti
         </FormField>
       </div>
       <FormField label="Price note" htmlFor="pd-price-note">
-        <input id="pd-price-note" className={controlClass} placeholder="e.g. Per person sharing a twin room, minimum 20 travellers" maxLength={300}
+        <input id="pd-price-note" className={controlClass} placeholder="e.g. Valid for travel in June 2027, minimum 20 travellers" maxLength={300}
           value={s.price_note ?? ""} onChange={(e) => onChange({ price_note: e.target.value || null })} />
       </FormField>
       {options.internal_estimate_per_person && (
-        <p className="rounded-md bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+        <p className="text-xs text-muted-foreground">
           Internal only (never in the PDF): estimated cost {formatMoney(options.internal_estimate_per_person, options.currency)} per person, from inventory prices.
         </p>
       )}

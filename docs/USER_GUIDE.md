@@ -78,6 +78,24 @@ Open an itinerary and click **Edit itinerary**. Generated versions are kept unch
 - **Checks** (right-hand side) are re-done after every change: duplicates, closed days, too-busy days, unverified diets, meals to arrange, hotel category, vehicle size and countries, long drives, over budget. The **estimated cost** updates too.
 - **Save version** gives the current state a name (e.g. "Hotel upgrades") and keeps it read-only. **Versions** lists all versions: *View* any of them, *Restore* one as a new draft (nothing is overwritten), or compare two to see what changed. **Duplicate** copies the whole itinerary.
 
+## Pricing an itinerary (Pricing & costing)
+
+Open an itinerary and click **Pricing**. The **Pricing & Costing** menu also lists all itineraries. This page is internal: customers never see costs, margins or profit.
+
+- **Selling prices** at the top: per adult (twin sharing), single supplement, and child with and without a bed. If you chose another currency, it's shown underneath. The figures below them are internal: cost per adult, revenue, cost, profit and margin.
+- **Cost lines** come from the itinerary and inventory: hotel rooms, vehicle and driver, tickets, restaurant meals, plus train legs and hotel meals, which have no price yet.
+  - *Estimate* means an unverified inventory price; *No price* means the cost is unknown.
+  - Type a new cost or quantity to override it for this proposal (*Edited*). The ↺ button goes back to inventory values. Untick a line to leave it out.
+  - **Add cost line** adds guides, tolls, parking or extras. *Per person* counts once per traveller; the other bases are shared by the group.
+- **Room rates**: the double and single rates per night used for the per-person prices. If a hotel has no single room, the double rate is used (*Single = double*); enter the real single rate if you know it.
+- **Margins** are a percentage added on top of cost, for each category. Under each category you see its cost → selling per person.
+- **Adjustments**: discount %, a fixed amount per person (+ or −), rounding up (e.g. to the nearest 10), and the child-with-bed hotel share.
+- **Travellers**: taken from the enquiry. Change them here, e.g. children without a bed, or adults in single rooms (they pay the supplement).
+- **Currency**: choose a second currency, type the rate (1 EUR = …) and decide what the PDF shows (EUR, the other currency, or both).
+- Changes save when you leave a field. Each version has its own pricing. A new version starts with the pricing of the one it came from, and cost lines follow your edits in the builder.
+
+**Administrators:** *Administration → Pricing defaults* sets the default margin per category, rounding, child bed share and second currency for new pricing sheets. The 15% margins are placeholders: set YANA's own, then switch on *Margins reviewed*.
+
 ## Creating the PDF proposal (PDF designer)
 
 Open an itinerary and click **PDF proposal**, or click **PDF** in the builder. The **PDF Designer** menu also lists all itineraries.
@@ -91,7 +109,7 @@ Open an itinerary and click **PDF proposal**, or click **PDF** in the builder. T
   - **YANA**: YANA's name, logo and contact details.
   - **Both**: the agent first, "in partnership with" YANA.
 - **Sections**: tick or untick a section, and use the arrows to change the order.
-- **Price**: type the selling price per person (and a note such as "twin sharing"). Without it, the PDF says *Price on request*. The yellow internal estimate is never printed.
+- **Price**: the PDF shows the selling prices from **Pricing** (adult twin, single supplement, children). If the version hasn't been priced, it says *Price on request*. You can type an override price per person instead, plus a note such as "valid for June 2027". Costs and margins are never printed.
 - **Text**: the title, introduction and closing message are written automatically. Edit them for this proposal, or click *Use automatic text* to go back.
 - **Day photos**: per day, choose *Automatic* (first sightseeing photo, then the hotel, then the city), *No photo*, or a specific photo. Add photos in Destination Inventory first.
 - **Inclusions, exclusions and terms**: inclusions come from the itinerary (hotels, meals, transport, transfers, entrance tickets); exclusions and terms come from the YANA defaults. You can edit any of them, one item per line.
